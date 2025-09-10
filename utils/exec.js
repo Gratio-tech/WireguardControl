@@ -1,4 +1,4 @@
-import { spawn, exec } from 'child_process';
+import { spawn, exec  } from 'child_process';
 
 export const COLORS = {
   Reset: '\x1b[0m',
@@ -72,6 +72,8 @@ export const restartProcess = () => {
          if (error) {
              console.error('Ошибка перезагрузки через PM2:', error);
              process.exit(1);
+         } else {
+           console.log('WG-control successfully restarted');
          }
      });
   } else {
