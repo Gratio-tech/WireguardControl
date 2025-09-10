@@ -61,6 +61,42 @@ router.get('/', asyncHandler(async (req, res) => {
 }));
 */
 
-server.listen(frontServerPort, () => {
+const appServer = server.listen(frontServerPort, () => {
   console.log(`Wireguard-control ready on http://localhost:${frontServerPort}`)
 })
+
+// Обработчик graceful shutdown для PM2
+process.on('message', (msg) => {
+  if (msg === 'shutdown') {
+    console.log('Received shutdown message. Closing all connections...');
+
+    // Закрываем HTTP-сервер для прекращения принятия новых соединений
+    appServer.close((err) => {
+      if (err) {
+        console.error('Error during server close:', err);
+        process.exit(1); // Завершаем с ошибкой, если не удалось закрыть сервер
+      } else {
+        console.log('HTTP server closed successfully.');
+      }
+    });
+
+    // Здесь можно добавить закрытие других ресурсов:
+    // - Базы данных (например, MongoDB, PostgreSQL)
+    // - Внешних API-соединений
+    // - Интервалов или таймеров (clearInterval, clearTimeout)
+    // - Очередей (например, RabbitMQ, Redis)
+
+    // Пример для MongoDB:
+    // if (mongoose.connection.readyState === 1) {
+    //   mongoose.connection.close(false, () => {
+    //     console.log('MongoDB connection closed.');
+    //   });
+    // }
+
+    // Даём время на корректное завершение операций, затем выходим
+    setTimeout(() => {
+      console.log('Finished closing connections. Exiting process.');
+      process.exit(0); // Корректное завершение
+    }, 1000);
+  }
+});

@@ -2,7 +2,7 @@ import Crypt from '@gratio/crypt';
 
 import type { Request, Response, NextFunction } from 'express';
 
-import { getFrontendConfig, executeSingleCommand, getStatusFromBash, setWGStatus } from '../utils/index.js';
+import { getFrontendConfig, executeSingleCommand, getStatusFromBash, setWGStatus, restartProcess } from '../utils/index.js';
 
 const { encryptMsg } = Crypt.serverCrypt;
 
@@ -58,6 +58,8 @@ export const rebootWGinterface = async (req: Request, res: Response<AppResult>, 
 
     setWGStatus(true);
     console.log('WireGuard successfully restarted');
+
+    setTimeout(restartProcess, 2000); // Перезагружаем процесс
 
     res.status(200).json({
       success: true,

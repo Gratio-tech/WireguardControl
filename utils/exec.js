@@ -1,4 +1,4 @@
-import { spawn } from 'child_process';
+import { spawn, exec } from 'child_process';
 
 export const COLORS = {
   Reset: '\x1b[0m',
@@ -61,4 +61,33 @@ export const getServerIP = async () => {
   const command = `ip addr show ${externalInterface} | grep "inet" | grep -v "inet6" | head -n 1 | awk '/inet/ {print $2}' | awk -F/ '{print $1}'`;
   const pubIP = await executeSingleCommand('bash', ['-c', command]);
   return pubIP;
+};
+
+export const restartProcess = () => {
+  // Проверяем, запущены ли мы под PM2 (переменная устанавливается в конфигурационном файле)
+  if (process.env.IS_PM2_PROC) {
+     // Используем команду PM2 для перезапуска
+     console.log('WG-control is running under PM2, restarting via the PM2 command');
+     exec('pm2 restart all', (error) => {
+         if (error) {
+             console.error('Ошибка перезагрузки через PM2:', error);
+             process.exit(1);
+         }
+     });
+  } else {
+     // Стандартный перезапуск если запущены не под PM2
+     console.log('WG-control is launched as a separate process, we restart it via spawn')
+     const args = process.argv;
+     const command = args[0];
+     const script = args[1];
+
+     const child = spawn(command, [script, ...args.slice(2)], {
+         env: { ...process.env, IS_RESTART: 'true' },
+         stdio: 'inherit',
+         detached: true
+     });
+
+     child.unref();
+     process.exit(0);
+  }
 };

@@ -4,11 +4,15 @@
     "script" : "./dist/server.js",
     "watch": ["dist"],
     "ignore-watch": ["node_modules"],
+    "timestamp": "DD-MM HH:MM",
+    "log-date-format": "DD-MM HH:MM",
     "env": {
-       "NODE_ENV": "development"
+       "NODE_ENV": "development",
+       "IS_PM2_PROC": true
     },
     "env_production": {
-       "NODE_ENV": "production"
+       "NODE_ENV": "production",
+       "IS_PM2_PROC": true
     }
   }]
 }
