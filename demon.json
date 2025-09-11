@@ -6,6 +6,8 @@
     "ignore-watch": ["node_modules"],
     "timestamp": "DD-MM HH:MM",
     "log-date-format": "DD-MM HH:MM",
+    "shutdown_with_message": true,
+    "kill_timeout": 3000,
     "env": {
        "NODE_ENV": "development",
        "IS_PM2_PROC": true
