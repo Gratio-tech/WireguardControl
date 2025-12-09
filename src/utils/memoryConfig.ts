@@ -139,7 +139,12 @@ export const loadServerConfig = async (): Promise<void> => {
     Object.keys(savedPeers).forEach(peerKey => {
       if (!allActivePeers.includes(peerKey)) savedPeers[peerKey].active = false;
     });
-    saveJSON(PEERS_PATH, JSON.parse(JSON.stringify(savedPeers)), true);
+    saveJSON({
+      filePath: PEERS_PATH,
+      objToSave: JSON.parse(JSON.stringify(savedPeers)),
+      format: true,
+      logSaving: false,
+    });
   }
   const correctParsedIfaces = Object.keys(configInMemory.interfaces);
   if (interfacesCount === 0 && !wgStatus.success) {
@@ -152,7 +157,12 @@ export const loadServerConfig = async (): Promise<void> => {
   } else if (!isExistAndNotNull(defaultInterface) || !correctParsedIfaces.includes(defaultInterface)) {
     const firstInterface = correctParsedIfaces[0];
     frontendSettings.defaultInterface = firstInterface;
-    saveJSON(CONFIG_PATH, JSON.parse(JSON.stringify(frontendSettings)), true);
+    saveJSON({
+      filePath: CONFIG_PATH,
+      objToSave: JSON.parse(JSON.stringify(frontendSettings)),
+      format: true,
+      logSaving: false,
+    });
     console.log('defaultInterface from ./config.json missing or incorrect, set new: ', firstInterface);
     configInMemory.defaultInterface = firstInterface;
   }

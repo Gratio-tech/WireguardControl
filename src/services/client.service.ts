@@ -29,7 +29,12 @@ const readPeers = (): PeerStorage => {
 };
 
 const persistPeers = (peers: PeerStorage): void => {
-  saveJSON(PEERS_PATH, JSON.parse(JSON.stringify(peers)), true);
+  saveJSON({
+    filePath: PEERS_PATH,
+    objToSave: JSON.parse(JSON.stringify(peers)),
+    format: true,
+    logSaving: false,
+  });
 };
 
 const buildClientConfig = (params: {

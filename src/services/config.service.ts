@@ -89,7 +89,12 @@ export const updateFrontendSettings = async (req: Request, res: Response, next: 
     if (typeof runtimeRotationMinutes === 'number' && runtimeRotationMinutes > 0) {
       config.runtimeRotationMinutes = runtimeRotationMinutes;
     }
-    saveJSON(CONFIG_PATH, JSON.parse(JSON.stringify(config)), true);
+    saveJSON({
+      filePath: CONFIG_PATH,
+      objToSave: JSON.parse(JSON.stringify(config)),
+      format: true,
+      logSaving: false,
+    });
     await loadServerConfig();
     initRuntimeGuard(config.runtimeRotationMinutes ?? 5);
     res.status(200).json({ success: true });
