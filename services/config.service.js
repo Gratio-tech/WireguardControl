@@ -3,7 +3,7 @@ import { writeFileSync, readFileSync } from 'fs';
 import { Readable } from 'stream';
 import { readJSON, saveJSON } from 'boma';
 import Crypt from '@gratio/crypt';
-import { isExistAndNotNull } from 'vanicom';
+import { isExistAndNotNull, getDateTime } from 'vanicom';
 
 import {
   appendDataToConfig,
@@ -20,7 +20,8 @@ import {
   formatConfigToString,
   formatObjectToConfigSection,
   transCyrilic,
-  removePeerFromConfig
+  removePeerFromConfig,
+  renamePeerInJSON,
 } from '../utils/index.js';
 
 const { encryptMsg } = Crypt.serverCrypt;
@@ -40,7 +41,7 @@ export const getInterfaceConfig = async (req, res, next) => {
     const cipher = encryptMsg({ message: currentConfig, pass: frontendPasskey });
     res.status(200).json({ success: true, data: cipher });
   } catch (e) {
-    console.error('getConfig service error: ', e);
+    console.error(`[${getDateTime()}] getConfig service error: `, e);
     res.status(520).json({ success: false, errors: 'Can`t get Wireguard config' });
     next(e);
   }
@@ -57,7 +58,7 @@ export const getInterfaces = async (req, res, next) => {
       data: interfacesListForSelect,
     });
   } catch (e) {
-    console.error('getInterfaces service error: ', e);
+    console.error(`[${getDateTime()}] getInterfaces service error: `, e);
     res.status(520).json({ success: false, errors: 'Can`t get Wireguard Interfaces' });
     next(e);
   }
@@ -78,7 +79,7 @@ export const getFirstFreeIP = async (req, res, next) => {
       data: getFirstAvailableIP(busyIPs, serverCIDR),
     });
   } catch (e) {
-    console.error('getFirstFreeIP service error: ', e);
+    console.error(`[${getDateTime()}] getFirstFreeIP service error: `, e);
     res.status(520).json({ success: false, errors: 'Can`t get new free IP' });
     next(e);
   }
@@ -136,7 +137,7 @@ export const addNewClient = async (req, res, next) => {
     res.end();
     next('route');
   } catch (e) {
-    console.error('addNewClient service error: ', e);
+    console.error(`[${getDateTime()}] addNewClient service error: `, e);
     res.status(520).json({ success: false, errors: 'Can`t add new client' });
     next(e);
   }
@@ -154,21 +155,39 @@ export const removeClient = async (req, res, next) => {
 
   try {
     const peerFound = removePeerFromConfig(iface, pubKey);
+    // TODO: типизировать removePeerFromConfig так чтоб она возвращала ещё и данные по ошибке
     if (!peerFound) {
       return res.status(404).json({ success: false, errors: 'Peer not found in config' });
-    }
-    // Удаление из файла peers.json
-    let peersData = readJSON({ filePath: PEERS_PATH, parseJSON: true, createIfNotFound: {} });
-
-    if (peersData[pubKey]) {
-      delete peersData[pubKey];
-      saveJSON(PEERS_PATH, peersData, true);
     }
 
     res.status(200).json({ success: true });
   } catch (e) {
-    console.error('removeClient service error: ', e);
+    console.error(`[${getDateTime()}] removeClient service error: `, e);
     res.status(520).json({ success: false, errors: 'Can`t remove client' });
+    next(e);
+  }
+};
+
+// Переименование клиента (не меняет конфиг, меняет только JSON)
+export const renameClient = async (req, res, next) => {
+  const iface = req.body?.iface;
+  const pubKey = req.body?.pubKey;
+
+  if (!pubKey || typeof pubKey !== 'string' || pubKey.trim().length !== 44) {
+    return res.status(422).json({ success: false, errors: 'Incorrect public key!' });
+  }
+
+  try {
+    const peerFound = renamePeerInJSON(iface, pubKey);
+    // TODO: типизировать removePeerFromConfig так чтоб она возвращала ещё и данные по ошибке
+    if (!peerFound) {
+      return res.status(404).json({ success: false, errors: 'Peer not found in config' });
+    }
+
+    res.status(200).json({ success: true });
+  } catch (e) {
+    console.error(`[${getDateTime()}] renameClient service error: `, e);
+    res.status(520).json({ success: false, errors: 'Can`t rename client' });
     next(e);
   }
 };

@@ -1,4 +1,5 @@
 import { appendFileSync, readdir, readFileSync, writeFileSync } from 'fs';
+import { readJSON } from 'boma';
 
 // Дописываем в конец конфига
 export const appendDataToConfig = async (filePath, data) => {
@@ -95,7 +96,17 @@ export const removePeerFromConfig = (iface, pubKey) => {
     return true;
   });
 
-  peerFound && writeFileSync(configPath, newSections.join(''), 'utf8');
+  if (peerFound) {
+    writeFileSync(configPath, newSections.join(''), 'utf8');
+
+    // Удаление из файла peers.json
+    let peersData = readJSON({ filePath: PEERS_PATH, parseJSON: true, createIfNotFound: {} });
+
+    if (peersData[pubKey]) {
+      delete peersData[pubKey];
+      saveJSON(PEERS_PATH, peersData, true);
+    }
+  }
 
   return peerFound;
 }
