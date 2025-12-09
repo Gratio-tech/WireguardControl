@@ -6,10 +6,10 @@ Simple Wireguard web interface, written on TypeScript, with both ability to use 
 Простой web-интерфейс для VPN-wireguard с возможностью как использовать уже созданные конфиги, так и настраивать свои.
 
 ## Branches
-This is the **main** branch, here is only the finished build of **Wireguard-Control**.
-For development please use the [dev branch](https://github.com/Gratio-tech/WireguardControl/tree/dev)
+This is the **dev** branch, here is all the development of **Wireguard-Control**.
+For production please use the [main branch](https://github.com/Gratio-tech/WireguardControl/tree/main)
 
-Это основная ветка, здесь лишь готовый билд **Wireguard-Control**. Для разработки используйте, пожалуйста [ветку dev](https://github.com/Gratio-tech/WireguardControl/tree/dev).
+Это ветка разработки, здесь лежат исходники **Wireguard-Control**, без билда. Для хранения билда используйте, пожалуйста [ветку main](https://github.com/Gratio-tech/WireguardControl/tree/main).
 
 ### Readme
 - [Description, CLI usage and installation guide](./docs/readme.eng.md)
