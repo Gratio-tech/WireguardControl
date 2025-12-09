@@ -1,4 +1,4 @@
-export const setSecurityHeaders = (req, res, next) => {
+export const setSecurityHeaders = (_, res, next) => {
     res.set({
         'X-Content-Type-Options': 'nosniff',
         'X-Frame-Options': 'DENY',
@@ -10,8 +10,9 @@ export const setSecurityHeaders = (req, res, next) => {
         'Referrer-Policy': 'no-referrer',
         'Strict-Transport-Security': 'max-age=31536000; includeSubDomains',
         'Expect-CT': 'enforce, max-age=86400',
-        'Content-Security-Policy': "default-src *; style-src 'self' 'unsafe-inline'; script-src 'self' 'unsafe-inline'",
+        'Content-Security-Policy': "default-src 'self' 'unsafe-inline' data: blob:; style-src 'self' 'unsafe-inline'; script-src 'self' 'unsafe-inline'",
         'Permissions-Policy': 'camera=(), microphone=(), geolocation=(), payment=()',
+        'Cache-Control': 'no-store',
     });
     next();
 };

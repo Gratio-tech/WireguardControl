@@ -1,8 +1,9 @@
-const VERIFICATION_CODE = 'HGJGRGSADF12342kjSJF3riuhfkds3';
-export const verifyClient = async (req, res, next) => {
+import { isValidRuntimeCode } from '../core/runtimeGuard.js';
+export const verifyClient = (req, res, next) => {
     const verificationCode = req.headers['x-verification-code'];
-    if (!verificationCode || verificationCode !== VERIFICATION_CODE) {
-        return res.status(403).json({ message: 'Forbidden' });
+    if (!isValidRuntimeCode(verificationCode)) {
+        res.status(403).json({ message: 'Forbidden' });
+        return;
     }
     next();
 };

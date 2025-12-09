@@ -1,7 +1,8 @@
 import path from 'path';
 import { readJSON } from 'boma';
 import { isExistAndNotNull } from 'vanicom';
-import { getIfaceParams } from './index.js';
+import { PEERS_PATH } from './constants.js';
+import { getIfaceParams } from './memoryConfig.js';
 export const isValidSubnetMask = (mask) => {
     const regex = /^((255|254|252|248|240|224|192|128|0)\.){3}(255|254|252|248|240|224|192|128|0)$/;
     if (!regex.test(mask)) {
@@ -21,17 +22,17 @@ export const isValidSubnetMask = (mask) => {
 };
 export const getInterfacePeersIPs = (iface) => {
     const ifaceParams = getIfaceParams(iface);
-    if (!ifaceParams.success) {
-        throw new Error(`Ошибка получения параметров интерфейса: ${ifaceParams.error}`);
+    if (!ifaceParams.success || !ifaceParams.data) {
+        throw new Error(`Failed to get interface params: ${ifaceParams.errors}`);
     }
-    const { peers: peersData, ip: serverIP } = ifaceParams.data;
+    const { peers: peersKeys, ip: serverIP } = ifaceParams.data;
     const parsedPeers = readJSON({
-        filePath: path.resolve(process.cwd(), './.data/peers.json'),
+        filePath: path.resolve(PEERS_PATH),
         parseJSON: true,
         createIfNotFound: {},
     });
     const busyIPs = new Set();
-    for (const peerKey of peersData) {
+    for (const peerKey of peersKeys) {
         const peer = parsedPeers[peerKey];
         if (!isExistAndNotNull(peer))
             continue;
@@ -53,23 +54,22 @@ export const getFirstAvailableIP = (occupiedIPs, cidr) => {
     const occupiedNumbers = occupiedIPs
         .map(ip => {
         const parts = ip.split('.').map(Number);
-        if (parts.length !== 4 || parts.some(isNaN))
+        if (parts.length !== 4 || parts.some(part => Number.isNaN(part))) {
             return null;
+        }
         return (parts[0] << 24) | (parts[1] << 16) | (parts[2] << 8) | parts[3];
     })
-        .filter((ip) => ip !== null)
+        .filter((ipNumber) => ipNumber !== null)
         .sort((a, b) => a - b);
+    if (!occupiedNumbers.length) {
+        return null;
+    }
     const networkIP = occupiedNumbers[0] & (~0 << (32 - cidr));
     const broadcastIP = networkIP | (~0 >>> cidr);
     const occupiedSet = new Set(occupiedNumbers);
     for (let ipNum = networkIP + 1; ipNum < broadcastIP; ipNum++) {
         if (!occupiedSet.has(ipNum)) {
-            return [
-                (ipNum >>> 24) & 0xff,
-                (ipNum >>> 16) & 0xff,
-                (ipNum >>> 8) & 0xff,
-                ipNum & 0xff,
-            ].join('.');
+            return [(ipNum >>> 24) & 0xff, (ipNum >>> 16) & 0xff, (ipNum >>> 8) & 0xff, ipNum & 0xff].join('.');
         }
     }
     return null;

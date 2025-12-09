@@ -1,17 +1,14 @@
-import path from 'path';
-import { writeFileSync, readFileSync } from 'fs';
-import { Readable } from 'stream';
-import { readJSON, saveJSON } from 'boma';
 import Crypt from '@gratio/crypt';
-import { isExistAndNotNull } from 'vanicom';
-import { appendDataToConfig, getFrontendConfig, ifaceCorrect, getActiveInterfaceses, getDefaultInterface, getInterfacePeersIPs, getIfaceParams, getCurrentEndpoint, getFirstAvailableIP, genNewClientKeys, parseInterfaceConfig, formatConfigToString, formatObjectToConfigSection, transCyrilic, removePeerFromConfig } from '../utils/index.js';
-const { encryptMsg } = Crypt.serverCrypt;
-const PEERS_PATH = path.resolve(process.cwd(), './.data/peers.json');
+import { readJSON, saveJSON } from 'boma';
+import { CONFIG_PATH } from '../utils/constants.js';
+import { initRuntimeGuard } from '../core/runtimeGuard.js';
+import { getActiveInterfaceses, getCurrentEndpoint, getDefaultInterface, getFrontendConfig, getIfaceParams, getInterfacePeersIPs, getFirstAvailableIP, loadServerConfig, parseInterfaceConfig, } from '../utils/index.js';
+const encryptMsg = Crypt.serverCrypt.encryptMsg;
 export const getInterfaceConfig = async (req, res, next) => {
     const iface = req.query.iface;
     try {
-        let currentConfig = await parseInterfaceConfig(iface);
-        currentConfig['interface']['External IP'] = getCurrentEndpoint();
+        const currentConfig = await parseInterfaceConfig(iface);
+        currentConfig.interface['External IP'] = getCurrentEndpoint();
         const { frontendPasskey } = getFrontendConfig();
         const cipher = encryptMsg({ message: currentConfig, pass: frontendPasskey });
         res.status(200).json({ success: true, data: cipher });
@@ -22,7 +19,7 @@ export const getInterfaceConfig = async (req, res, next) => {
         next(e);
     }
 };
-export const getInterfaces = async (req, res, next) => {
+export const getInterfaces = async (_, res, next) => {
     try {
         const activeInterfacesList = getActiveInterfaceses();
         const defaultIface = getDefaultInterface();
@@ -42,14 +39,15 @@ export const getFirstFreeIP = async (req, res, next) => {
     const iface = req.query.iface;
     try {
         const ifaceParams = getIfaceParams(iface);
-        if (!ifaceParams.success) {
-            return res.status(422).json(ifaceParams);
+        if (!ifaceParams.success || !ifaceParams.data) {
+            res.status(422).json(ifaceParams);
+            return;
         }
         const busyIPs = getInterfacePeersIPs(iface);
-        const { cidr: serverCIDR } = ifaceParams.data;
+        const { cidr } = ifaceParams.data;
         res.status(200).json({
             success: true,
-            data: getFirstAvailableIP(busyIPs, serverCIDR),
+            data: getFirstAvailableIP(busyIPs, cidr),
         });
     }
     catch (e) {
@@ -58,74 +56,44 @@ export const getFirstFreeIP = async (req, res, next) => {
         next(e);
     }
 };
-export const addNewClient = async (req, res, next) => {
-    const requestedIP = req.body?.ip;
-    const newName = req.body?.name;
-    const iface = req.body?.iface;
+export const updateFrontendSettings = async (req, res, next) => {
+    const { dns, frontendPasskey, runtimeRotationMinutes } = req.body;
     try {
-        const ifaceParams = getIfaceParams(iface);
-        if (!ifaceParams.success) {
-            return res.status(400).json(ifaceParams);
+        const config = readJSON({ filePath: CONFIG_PATH, parseJSON: true, createIfNotFound: {} });
+        if (Array.isArray(dns)) {
+            config.dns = dns.filter(Boolean);
         }
-        const { cidr: serverCIDR, pubkey: serverPubKey, port: serverWGPort } = ifaceParams.data;
-        const busyIPs = getInterfacePeersIPs(iface);
-        if (isExistAndNotNull(requestedIP) && busyIPs.includes(requestedIP)) {
-            return res.status(400).json({ success: false, errors: 'Requested IP for new client is already in use' });
+        else if (typeof dns === 'string') {
+            config.dns = dns
+                .split(',')
+                .map(value => value.trim())
+                .filter(Boolean);
         }
-        const newClientData = await genNewClientKeys();
-        const newIP = requestedIP || getFirstAvailableIP(busyIPs, serverCIDR);
-        await appendDataToConfig('/etc/wireguard/' + iface + '.conf', formatObjectToConfigSection('Peer', { PublicKey: newClientData.pubKey, PresharedKey: newClientData.presharedKey, AllowedIPs: newIP }));
-        let parsedPeers = readJSON({ filePath: PEERS_PATH, parseJSON: true, createIfNotFound: {} });
-        parsedPeers[newClientData.pubKey] = {
-            name: newName ?? '',
-            active: true,
-            ip: newIP,
-            PresharedKey: newClientData.presharedKey,
-        };
-        saveJSON(PEERS_PATH, parsedPeers, true);
-        const formattedConfig = formatConfigToString({
-            Interface: { PrivateKey: newClientData.randomKey, Address: newIP, DNS: '10.8.1.1' },
-            Peer: {
-                PresharedKey: newClientData.presharedKey,
-                PublicKey: serverPubKey,
-                AllowedIPs: '0.0.0.0/0',
-                Endpoint: `${getCurrentEndpoint()}:${serverWGPort}`,
-                PersistentKeepalive: 25,
-            },
-        });
-        res.setHeader('Content-Type', 'text/plain;charset=utf-8');
-        res.setHeader('Content-Disposition', `attachment; filename="${newName ? transCyrilic(newName) + '.conf' : 'Client.conf'}"`);
-        res.send(formattedConfig);
-        res.end();
-        next('route');
-    }
-    catch (e) {
-        console.error('addNewClient service error: ', e);
-        res.status(520).json({ success: false, errors: 'Can`t add new client' });
-        next(e);
-    }
-};
-export const removeClient = async (req, res, next) => {
-    const iface = req.body?.iface;
-    const pubKey = req.body?.pubKey;
-    if (!pubKey || typeof pubKey !== 'string' || pubKey.trim().length !== 44) {
-        return res.status(422).json({ success: false, errors: 'Incorrect public key!' });
-    }
-    try {
-        const peerFound = removePeerFromConfig(iface, pubKey);
-        if (!peerFound) {
-            return res.status(404).json({ success: false, errors: 'Peer not found in config' });
+        if (frontendPasskey && typeof frontendPasskey === 'string' && frontendPasskey.trim()) {
+            config.frontendPasskey = frontendPasskey.trim();
         }
-        let peersData = readJSON({ filePath: PEERS_PATH, parseJSON: true, createIfNotFound: {} });
-        if (peersData[pubKey]) {
-            delete peersData[pubKey];
-            saveJSON(PEERS_PATH, peersData, true);
+        if (typeof runtimeRotationMinutes === 'number' && runtimeRotationMinutes > 0) {
+            config.runtimeRotationMinutes = runtimeRotationMinutes;
         }
+        saveJSON(CONFIG_PATH, JSON.parse(JSON.stringify(config)), true);
+        await loadServerConfig();
+        initRuntimeGuard(config.runtimeRotationMinutes ?? 5);
         res.status(200).json({ success: true });
     }
     catch (e) {
-        console.error('removeClient service error: ', e);
-        res.status(520).json({ success: false, errors: 'Can`t remove client' });
+        console.error('updateFrontendSettings error: ', e);
+        res.status(520).json({ success: false, errors: 'Can`t update frontend settings' });
+        next(e);
+    }
+};
+export const getFrontendSettings = async (_, res, next) => {
+    try {
+        const { dns, runtimeRotationMinutes } = getFrontendConfig();
+        res.status(200).json({ success: true, data: { dns, runtimeRotationMinutes } });
+    }
+    catch (e) {
+        console.error('getFrontendSettings error: ', e);
+        res.status(520).json({ success: false, errors: 'Can`t load frontend settings' });
         next(e);
     }
 };

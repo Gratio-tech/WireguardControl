@@ -2,16 +2,17 @@
 A simple web interface for WireGuard VPN that allows using existing configurations or setting up new ones.
 
 ### Features and Characteristics
-- Adding and removing clients via the web interface
+- Adding and removing clients via the web interface with live QR preview
 - Tracking status in the interface
 - Reloading WireGuard via the web interface
 - Working with multiple `.conf` files (interfaces)
 - Written in JS, with a maximally simple and open interface, allowing on-the-fly edits without the need for building
+- Rotating runtime verification tokens (no hardcoded secrets in the repo)
+- Client secrets are stored encrypted in `.data/peers.json`
 - Does not use any databases (data is stored in JSON)
 
 ### Disadvantages
 - Applying a configuration (*e.g., after adding a client*) requires a WireGuard reload
-- Client data (pubkey, presharedkey, etc.) is stored without any encryption
 - Requires NodeJS to be installed, and preferably PM2 for automatic restart support
 
 ### Preparation
@@ -30,7 +31,7 @@ You can check if `nvm` is installed by running `nvm -v`. After that, install the
 nvm install 20.10.0
 ```
 
-### Installation
+### Installation (from sources)
 Clone the repository into a convenient folder (here, for example, it's `/var/wg-control`):
 ```bash
 git clone https://github.com/Psychosynthesis/WireguardControl.git /var/wg-control
@@ -52,7 +53,7 @@ npm run start
 ```
 Don't forget to specify your settings in the file `config.example.json` (on first launch it will be renamed to `config.json` file). You should set the default WG-interface and add your server's IP (in VPN network) to `allowedOrigins`. Also ensure that the `webServerPort` used by this server by default (`8877`) is open in the firewall (if you have port blocking enabled).
 
-**BE SURE TO CHANGE THE DEFAULT ENCRYPTION KEY!**
+**BE SURE TO CHANGE ALL DEFAULT SECRETS!**
 
 Note that you can generate a random key for yourself directly in bash, for example in the following ways:
 ```bash
@@ -90,6 +91,36 @@ Additional client data is stored in the `.data` folder in the `peers.json` file 
 ```
 
 When loading, `Wireguard-Control` searches for all available configs in `/etc/wireguard`, parses them, and loads them into memory, so the system does not access configuration files when requesting status.
+
+### Config file
+
+The `config.json` file (created from `config.example.json` on the first launch) now contains the following fields:
+
+| Key | Description |
+| --- | --- |
+| `defaultInterface` | Interface name (without `.conf`) that will be selected by default |
+| `frontServerPort` | Port used by the Express server |
+| `allowedOrigins` | List of URLs allowed for CORS |
+| `frontendPasskey` | Key that is used to encrypt API responses in the browser (enter it on the UI to read data) |
+| `dns` | Array of DNS servers that will be inserted into generated configs |
+| `clientEncryptionPass` | Passphrase used to AES-encrypt client private keys and preshared keys in `.data/peers.json` |
+| `runtimeRotationMinutes` | Interval for regenerating the runtime verification script (`public/assets/runtime.js`) |
+
+### CLI / npm usage
+
+The project exposes a small CLI so you can install it globally or run with `npx`:
+
+```bash
+npm install -g wg-control          # or use npx wg-control ...
+wg-control init-config             # copies config.example.json -> config.json if needed
+wg-control serve                   # starts the Express server (same as npm run start)
+```
+
+The CLI commands run from the current working directory, so make sure you execute them inside the project folder (or a folder that contains your `config.json` and `.data` directory). This makes it easier to distribute the tool through a private registry and keep the runtime up to date with `npm update -g wg-control`.
+
+### Additional Information
+
+Additional client data is stored in the `.data` folder in the `peers.json` file. Each entry now also contains encrypted `secretKey` and `presharedKey` fields, so even if somebody reads the file they still need `clientEncryptionPass` from `config.json` to obtain real values. Only the readable metadata (name, IP, interface) is kept in plain-text.
 
 ### Additional Resources
 

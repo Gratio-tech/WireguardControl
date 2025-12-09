@@ -9,7 +9,7 @@ export const COLORS = {
     Cyan: '\x1b[36m',
     White: '\x1b[37m',
 };
-export const executeSingleCommand = (command, args) => {
+export const executeSingleCommand = (command, args = []) => {
     return new Promise((resolve, reject) => {
         const childProcess = spawn(command, args);
         let stdoutData = '';
@@ -22,7 +22,7 @@ export const executeSingleCommand = (command, args) => {
         });
         childProcess.on('close', code => {
             if (code !== 0) {
-                reject(new Error(`executeSingleCommand end with error ${code}: ${stderrData}`));
+                reject(new Error(`executeSingleCommand failed with code ${code}: ${stderrData}`));
             }
             else {
                 resolve(stdoutData.trim());
@@ -36,7 +36,7 @@ export const genPubKey = async (privateKey) => {
 };
 export const genNewClientKeys = async () => {
     const randomKey = await executeSingleCommand('wg', ['genkey']);
-    const presharedKey = await executeSingleCommand('wg', ['genkey']);
+    const presharedKey = await executeSingleCommand('wg', ['genpsk']);
     const pubKey = await genPubKey(randomKey);
     return { randomKey, presharedKey, pubKey };
 };

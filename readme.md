@@ -10,5 +10,5 @@ For development please use the [dev branch](https://github.com/Psychosynthesis/W
 Это основная ветка, здесь лишь готовый билд **Wireguard-Control**. Для разработки используйте, пожалуйста [ветку dev](https://github.com/Psychosynthesis/WireguardControl/tree/dev).
 
 ### Readme
-- [Description and Installation guide](./docs/readme.eng.md)
-- [Описание и гайд по установке на русском](./docs/readme.ru.md)
+- [Description, CLI usage and installation guide](./docs/readme.eng.md)
+- [Описание, CLI и гайд по установке на русском](./docs/readme.ru.md)

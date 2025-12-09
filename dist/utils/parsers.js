@@ -1,16 +1,16 @@
 import fs from 'fs';
-import { getNameFromSavedData, normalizeLineBreaks } from './index.js';
+import { getNameFromSavedData, normalizeLineBreaks } from './tools.js';
 export const parseStatus = (rawStatus) => {
-    let parsedStatus = { interface: {}, peers: [] };
+    const parsedStatus = { interface: {}, peers: [] };
     const sections = rawStatus.split(/(?:\s*(interface|peer)\s*:)/gi).filter(line => line);
     for (let i = 0; i < sections.length; i += 2) {
         if (typeof sections[i + 1] === 'undefined')
             continue;
         const sectionName = sections[i].trim().toLowerCase();
         const sectionContent = normalizeLineBreaks(sections[i + 1].trim()).split(/\n/);
-        let parsedSection = { name: '' };
-        sectionContent.forEach((item, i) => {
-            if (i === 0) {
+        const parsedSection = { name: '' };
+        sectionContent.forEach((item, index) => {
+            if (index === 0) {
                 parsedSection.name = item;
             }
             else {
@@ -29,7 +29,7 @@ export const parseStatus = (rawStatus) => {
     return parsedStatus;
 };
 export const splitBySections = (content) => {
-    const result = { interface: {}, peers: [] };
+    const result = { peers: [] };
     if (typeof content !== 'string' || !content.length) {
         return result;
     }
@@ -56,6 +56,7 @@ const parseLine = (line) => {
             return { [key]: value };
         }
     }
+    return undefined;
 };
 export const parseInterfaceConfig = (iface) => {
     if (!iface || typeof iface !== 'string') {
@@ -65,33 +66,52 @@ export const parseInterfaceConfig = (iface) => {
     if (!fs.existsSync(interfacePath)) {
         throw new Error('Incorrect interface!');
     }
-    console.log('Try to parse interface ' + interfacePath);
+    console.log(`Try to parse interface ${interfacePath}`);
     try {
         const data = fs.readFileSync(interfacePath, 'utf8');
         const splittedData = splitBySections(data);
-        const configObject = { interface: {}, peers: [] };
+        const configObject = {
+            interface: {},
+            peers: [],
+        };
         for (const section in splittedData) {
             const sectionName = section.toLowerCase();
-            switch (sectionName) {
-                case 'peers':
-                    configObject.peers = splittedData[section].map((peerData) => {
+            if (sectionName === 'peers') {
+                const peerBlocks = splittedData[section];
+                if (Array.isArray(peerBlocks)) {
+                    configObject.peers = peerBlocks.map((peerData) => {
                         const peer = {};
                         peerData.split('\n').forEach(line => {
-                            Object.assign(peer, parseLine(line));
+                            const parsed = parseLine(line);
+                            if (parsed)
+                                Object.assign(peer, parsed);
                         });
-                        peer.name = getNameFromSavedData(peer.PublicKey);
+                        if (peer.PublicKey) {
+                            peer.name = getNameFromSavedData(peer.PublicKey);
+                        }
                         return peer;
                     });
-                    break;
-                case 'interface':
-                    splittedData[section].split('\n').forEach((line) => {
-                        configObject[section] = { ...configObject[section], ...parseLine(line) };
+                }
+            }
+            else if (sectionName === 'interface') {
+                const interfaceData = splittedData[section];
+                if (typeof interfaceData === 'string') {
+                    interfaceData.split('\n').forEach(line => {
+                        const parsed = parseLine(line);
+                        if (parsed) {
+                            configObject.interface = {
+                                ...configObject.interface,
+                                ...parsed,
+                            };
+                        }
                     });
+                }
             }
         }
         return configObject;
     }
     catch (error) {
-        throw new Error(`Failed to parse config file: ${error.message}`);
+        const err = error;
+        throw new Error(`Failed to parse config file: ${err.message}`);
     }
 };

@@ -4,8 +4,19 @@
   "description": "Another flexable Wireguard web-interface",
   "main": "dist/server.js",
   "license": "MIT",
-  "private": true,
+  "private": false,
   "type": "module",
+  "bin": {
+    "wg-control": "./dist/cli.js"
+  },
+  "files": [
+    "dist",
+    "public",
+    "docs",
+    "config.example.json",
+    "demon.json",
+    "readme.md"
+  ],
   "dependencies": {
     "@gratio/crypt": "^1.0.7",
     "boma": "^1.0.1",
@@ -17,18 +28,20 @@
     "vanicom": "^1.1.1"
   },
   "devDependencies": {
+    "@types/node": "^22.10.1",
     "@types/cookie-parser": "^1.4.9",
     "@types/cors": "^2.8.19",
     "@types/express": "^5.0.3",
     "nodemon": "^2.0.15",
+    "ts-node": "^10.9.2",
     "prettier": "3.5.3",
     "tsc-alias": "^1.8.14",
     "typescript": "^5.8.2"
   },
   "scripts": {
-    "dev": "nodemon --watch '.' --ext 'js,ts,json' --exec \"cross-env NODE_ENV=development && tsc && tsc-alias && node ./dist/server.js\"",
+    "dev": "cross-env NODE_ENV=development nodemon --watch src --ext ts,json --exec \"node --loader ts-node/esm ./src/server.ts\"",
     "start": "cross-env NODE_ENV=production node ./dist/server.js",
-    "style": "prettier --write '{middlewares,routes,services,utils}/**/*.ts' --cache -l",
+    "style": "prettier --write 'src/**/*.{ts,tsx}' --cache -l",
     "build": "npm run style && tsc && tsc-alias"
   },
   "prettier": {

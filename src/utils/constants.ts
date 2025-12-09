@@ -1,0 +1,12 @@
+import path from 'path';
+
+export const PROJECT_ROOT = process.cwd();
+export const DATA_DIR = path.resolve(PROJECT_ROOT, '.data');
+export const PEERS_PATH = path.resolve(DATA_DIR, 'peers.json');
+export const INTERFACES_PATH = path.resolve(DATA_DIR, 'interfaces.json');
+export const CONFIG_PATH = path.resolve(PROJECT_ROOT, 'config.json');
+export const CONFIG_EXAMPLE_PATH = path.resolve(PROJECT_ROOT, 'config.example.json');
+export const PUBLIC_DIR = path.resolve(PROJECT_ROOT, 'public');
+export const PUBLIC_ASSETS_DIR = path.resolve(PUBLIC_DIR, 'assets');
+export const RUNTIME_FILE_PATH = path.resolve(PUBLIC_ASSETS_DIR, 'runtime.js');
+export const DEFAULT_RUNTIME_ROTATION_MINUTES = 5;
