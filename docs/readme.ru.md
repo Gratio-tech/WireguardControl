@@ -32,14 +32,14 @@ nvm install 20.10.0
 ```
 
 ### Установка из исходников
-Клонирем репозиторий в удобную вам папку (здесь для примера это `/var/wg-control`):
+Клонирем репозиторий в удобную вам папку (здесь для примера это `/var/@gratio/wg`):
 ```bash
-git clone https://github.com/Gratio-tech/WireguardControl.git /var/wg-control
+git clone https://github.com/Gratio-tech/WireguardControl.git /var/@gratio/wg
 ```
 
 Переходим в созданную папку и устанавливаем зависимости:
 ```bash
-cd /var/wg-control
+cd /var/@gratio/wg
 npm i
 npm run build
 ```
@@ -47,7 +47,7 @@ npm run build
 ### Запуск
 Переходим в ранее созданную папку и запускаем сервер:
 ```bash
-cd /var/wg-control
+cd /var/@gratio/wg
 
 npm run start
 ```
@@ -72,7 +72,7 @@ forge.util.encode64(forge.random.getBytes(16));
 
 ```bash
 npm install pm2 -g
-cd /var/wg-control && pm2 start demon.json --watch --ignore-watch="node_modules"
+cd /var/@gratio/wg && pm2 start demon.json --watch --ignore-watch="node_modules"
 pm2 startup
 pm2 save
 ```
@@ -92,21 +92,23 @@ pm2 save
 | `clientEncryptionPass` | Пароль для AES-шифрования приватных ключей в `.data/peers.json` |
 | `runtimeRotationMinutes` | Интервал ротации проверочного скрипта `public/assets/runtime.js` |
 
-### CLI / установка из npm
+### CLI / установка из NPM
 
-Теперь проект можно ставить и обновлять через npm. После установки глобально доступны простые команды:
+Проект также можно ставить и обновлять через npm. После установки глобально доступны простые команды:
 
 ```bash
-npm install -g wg-control      # или используйте npx wg-control ...
-wg-control init-config         # создаёт config.json из примера, если его ещё нет
-wg-control serve               # запускает сервер (то же самое что npm run start)
+npm install -g @gratio/wg      # или используйте npx @gratio/wg ...
+@gratio/wg init-config         # создаёт config.json из примера, если его ещё нет
+@gratio/wg serve               # запускает сервер (то же самое что npm run start)
 ```
 
 Команды выполняются в текущей директории — запускайте их из папки с вашим `config.json` и `.data`, чтобы сервер сразу подцепил нужные данные.
 
 ### Дополнительная информация
 
-Дополнительные данные о клиентах хранятся в `.data/peers.json`. В JSON помимо имени и IP теперь есть зашифрованные поля `secretKey` и `presharedKey`. Расшифровать их можно только зная `clientEncryptionPass` из `config.json`. При загрузке `Wireguard-Control` ищет все доступные конфиги в `/etc/wireguard`, парсит и держит их в памяти, поэтому для чтения статуса не требуется постоянно обращаться к файлам.
+Дополнительные данные о клиентах хранятся в `.data/peers.json`. В JSON помимо имени и IP есть зашифрованные поля `secretKey` и `presharedKey`. Расшифровать их можно только зная `clientEncryptionPass` из `config.json`. При загрузке `Wireguard-Control` ищет все доступные конфиги в `/etc/wireguard`, парсит и держит их в памяти, поэтому для чтения статуса не требуется постоянно обращаться к файлам.
+
+Есть возможность задать директорию WireGuard на системе. Для этого следует перед запуском установить переменную среды `WG_CONFIG_DIR=/path/to/wg` с путём к WG.
 
 ### Дополнительно
 

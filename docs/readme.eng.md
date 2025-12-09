@@ -1,4 +1,6 @@
 ## Wireguard Control — Web Interface for WireGuard
+[![npm version](https://img.shields.io/npm/v/@gratio/wg?color=%23047dec)](https://www.npmjs.org/package/@gratio/wg)
+
 A simple web interface for WireGuard VPN that allows using existing configurations or setting up new ones.
 
 ### Features and Characteristics
@@ -32,14 +34,14 @@ nvm install 20.10.0
 ```
 
 ### Installation (from sources)
-Clone the repository into a convenient folder (here, for example, it's `/var/wg-control`):
+Clone the repository into a convenient folder (here, for example, it's `/var/@gratio/wg`):
 ```bash
-git clone https://github.com/Gratio-tech/WireguardControl.git /var/wg-control
+git clone https://github.com/Gratio-tech/WireguardControl.git /var/@gratio/wg
 ```
 
 Navigate to the created folder and install the dependencies, then build:
 ```bash
-cd /var/wg-control
+cd /var/@gratio/wg
 npm i
 npm run build
 ```
@@ -47,7 +49,7 @@ npm run build
 ### Launch
 Navigate to the previously created folder and start the server:
 ```bash
-cd /var/wg-control
+cd /var/@gratio/wg
 
 npm run start
 ```
@@ -75,7 +77,7 @@ Next, add the server script to autostart. There are several ways to do this, but
 
 ```bash
 npm install pm2 -g
-cd /var/wg-control && pm2 start demon.json --watch --ignore-watch="node_modules"
+cd /var/@gratio/wg && pm2 start demon.json --watch --ignore-watch="node_modules"
 pm2 startup
 pm2 save
 ```
@@ -111,12 +113,12 @@ The `config.json` file (created from `config.example.json` on the first launch) 
 The project exposes a small CLI so you can install it globally or run with `npx`:
 
 ```bash
-npm install -g wg-control          # or use npx wg-control ...
-wg-control init-config             # copies config.example.json -> config.json if needed
-wg-control serve                   # starts the Express server (same as npm run start)
+npm install -g @gratio/wg          # or use npx @gratio/wg ...
+@gratio/wg init-config             # copies config.example.json -> config.json if needed
+@gratio/wg serve                   # starts the Express server (same as npm run start)
 ```
 
-The CLI commands run from the current working directory, so make sure you execute them inside the project folder (or a folder that contains your `config.json` and `.data` directory). This makes it easier to distribute the tool through a private registry and keep the runtime up to date with `npm update -g wg-control`.
+The CLI commands run from the current working directory, so make sure you execute them inside the project folder (or a folder that contains your `config.json` and `.data` directory). This makes it easier to distribute the tool through a private registry and keep the runtime up to date with `npm update -g @gratio/wg`.
 
 ### Additional Information
 

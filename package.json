@@ -4,11 +4,21 @@
   "description": "Another flexable Wireguard web-interface",
   "main": "dist/server.js",
   "license": "MIT",
-  "private": false,
   "type": "module",
   "bin": {
-    "wg-control": "./dist/cli.js"
+    "@gratio/wg": "./dist/cli.js"
   },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/Gratio-tech/WireguardControl.git"
+  },
+  "author": "Gratio",
+  "license": "MIT",
+  "keywords": [ "wireguard", "ui", "web-ui" ],
+  "bugs": {
+    "url": "https://github.com/Gratio-tech/WireguardControl/issues"
+  },
+  "homepage": "https://github.com/Gratio-tech/WireguardControl#readme",
   "files": [
     "dist",
     "public",
@@ -19,13 +29,12 @@
     "readme.md"
   ],
   "dependencies": {
-    "@gratio/crypt": "^1.0.7",
+    "@gratio/crypt": "^1.0.13",
     "boma": "^2.0.0",
     "cookie-parser": "^1.4.5",
     "cors": "^2.8.5",
     "cross-env": "^7.0.3",
     "express": "^4.17.1",
-    "jsonwebtoken": "^8.5.1",
     "vanicom": "^1.1.1"
   },
   "devDependencies": {
@@ -39,6 +48,9 @@
     "prettier": "3.5.3",
     "tsc-alias": "^1.8.14",
     "typescript": "^5.8.2"
+  },
+  "publishConfig": {
+    "access": "public"
   },
   "scripts": {
     "dev": "cross-env NODE_ENV=development nodemon --watch src --ext ts,json --exec \"node --loader ts-node/esm ./src/server.ts\"",
@@ -56,5 +68,6 @@
     "bracketSpacing": true,
     "bracketSameLine": true,
     "arrowParens": "avoid"
-  }
+  },
+  "engines": { "node": ">=18.11.0" }
 }

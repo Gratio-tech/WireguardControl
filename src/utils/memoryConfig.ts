@@ -5,7 +5,14 @@ import { isExistAndNotNull } from 'vanicom';
 import { FrontendConfigFile, InterfaceDetails, PeerStorage, ServerMemoryConfig } from '../types/config.js';
 import { COLORS, genPubKey, getAllConfigs, getServerIP, getStatusFromBash } from './index.js';
 import { parseInterfaceConfig } from './parsers.js';
-import { CONFIG_EXAMPLE_PATH, CONFIG_PATH, INTERFACES_PATH, PEERS_PATH, DEFAULT_RUNTIME_ROTATION_MINUTES } from './constants.js';
+import {
+  CONFIG_EXAMPLE_PATH,
+  CONFIG_PATH,
+  INTERFACES_PATH,
+  PEERS_PATH,
+  DEFAULT_RUNTIME_ROTATION_MINUTES,
+  WIREGUARD_DIR,
+} from './constants.js';
 
 const ensureDataFile = (filePath: string): void => {
   const dir = path.dirname(filePath);
@@ -153,7 +160,7 @@ export const loadServerConfig = async (): Promise<void> => {
   }
   if (!correctParsedIfaces.length) {
     configInMemory.configIsOk = false;
-    console.error('No .conf files correctly parsed from /etc/wireguard');
+    console.error(`No .conf files correctly parsed from ${WIREGUARD_DIR}`);
   } else if (!isExistAndNotNull(defaultInterface) || !correctParsedIfaces.includes(defaultInterface)) {
     const firstInterface = correctParsedIfaces[0];
     frontendSettings.defaultInterface = firstInterface;

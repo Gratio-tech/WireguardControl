@@ -1,4 +1,5 @@
 import { appendFileSync, readdir, readFileSync, writeFileSync } from 'fs';
+import { WIREGUARD_DIR, resolveWireguardPath } from './constants.js';
 
 export const appendDataToConfig = async (filePath: string, data: string): Promise<void> => {
   const stringToAppend = `\n${data}\n`;
@@ -42,7 +43,7 @@ export const formatConfigToString = (configObject: Record<string, any>): string 
 
 export const getAllConfigs = async (): Promise<{ success: boolean; data?: string[]; errors?: string }> => {
   const allConfFiles = await new Promise<string[]>((resolve, reject) => {
-    readdir('/etc/wireguard', (err, files) => {
+    readdir(WIREGUARD_DIR, (err, files) => {
       if (err) {
         reject(err);
       } else {
@@ -61,13 +62,13 @@ export const getAllConfigs = async (): Promise<{ success: boolean; data?: string
     return { success: false, errors: 'Error when get configs' };
   }
   if (!allConfFiles.length) {
-    return { success: false, errors: 'Seems like WireGuard is not configured yet (no .conf files in /etc/wireguard)' };
+    return { success: false, errors: `Seems like WireGuard is not configured yet (no .conf files in ${WIREGUARD_DIR})` };
   }
   return { success: true, data: allConfFiles };
 };
 
 export const removePeerFromConfig = (iface: string, pubKey: string): boolean => {
-  const configPath = `/etc/wireguard/${iface}.conf`;
+  const configPath = resolveWireguardPath(iface);
   let configData = readFileSync(configPath, 'utf8');
   const sections = configData.split(/(?=\[)/g);
   let peerFound = false;
