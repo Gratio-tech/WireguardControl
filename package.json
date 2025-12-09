@@ -1,5 +1,5 @@
 {
-  "name": "wg-control",
+  "name": "@gratio/wg",
   "version": "1.0.0",
   "description": "Another flexable Wireguard web-interface",
   "main": "dist/server.js",

@@ -111,12 +111,16 @@ The `config.json` file (created from `config.example.json` on the first launch) 
 The project exposes a small CLI so you can install it globally or run with `npx`:
 
 ```bash
-npm install -g wg-control          # or use npx wg-control ...
+npm install -g @gratio/wg          # installs the CLI globally under the `wg-control` binary
 wg-control init-config             # copies config.example.json -> config.json if needed
 wg-control serve                   # starts the Express server (same as npm run start)
+
+# Or run without global installation:
+npx @gratio/wg init-config
+npx @gratio/wg serve
 ```
 
-The CLI commands run from the current working directory, so make sure you execute them inside the project folder (or a folder that contains your `config.json` and `.data` directory). This makes it easier to distribute the tool through a private registry and keep the runtime up to date with `npm update -g wg-control`.
+The CLI commands run from the current working directory, so make sure you execute them inside the project folder (or a folder that contains your `config.json` and `.data` directory). This makes it easier to distribute the tool through a private registry and keep the runtime up to date with `npm update -g @gratio/wg`.
 
 ### Additional Information
 

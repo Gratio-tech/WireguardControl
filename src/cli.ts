@@ -10,7 +10,7 @@ const __dirname = path.dirname(__filename);
 const command = process.argv[2] ?? 'serve';
 
 const help = (): void => {
-  console.log(`wg-control CLI
+  console.log(`@gratio/wg CLI
 
 Commands:
   serve             Start the WireGuard Control server
