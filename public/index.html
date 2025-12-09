@@ -6,10 +6,13 @@
     <link rel="icon" type="image/png" sizes="96x96" href="/assets/icon.png">
     <link rel="shortcut icon" sizes="96x96" href="/assets/icon.png" />
     <link rel="stylesheet" type="text/css" href="/assets/style.css" />
-    <script type="text/javascript" src="/assets/vanicom.min.js"></script>
-    <script type="text/javascript" src="assets/forge.js"></script>
-    <script type="text/javascript" src="assets/cypher.js"></script>
-    <script type="text/javascript" src="/assets/utils.js"></script>
+    <script src="/assets/vanicom.min.js" defer></script>
+    <script src="/assets/forge.js" defer></script>
+    <script src="/assets/cypher.js" defer></script>
+    <script src="/assets/qrcode.js" defer></script>
+    <script src="/assets/runtime.js" defer></script>
+    <script src="/assets/utils.js" defer></script>
+    <script src="/assets/app.js" defer></script>
     <title>Wireguard Control</title>
 </head>
 <body>
@@ -21,7 +24,26 @@
           <div id="error-block"><pre id="errors-code"></pre></div>
           <div id="status-block"></div>
         </div>
-        <div id="config-tab" style="display: none;"></div>
+        <div id="config-tab" style="display: none;">
+          <div id="config-details" class="text"></div>
+          <section id="frontend-settings-panel" class="settings-card hidden">
+            <h3>Настройки интерфейса</h3>
+            <form id="frontend-settings-form">
+              <label>DNS (через запятую)
+                <input id="dns-input" type="text" placeholder="1.1.1.1, 10.8.1.1" />
+              </label>
+              <label>Новый frontendPasskey
+                <input id="frontend-passkey-update" type="text" placeholder="Оставьте пустым, чтобы не менять" />
+              </label>
+              <label>Период обновления runtime (мин)
+                <input id="runtime-rotation-input" type="number" min="1" value="5" />
+              </label>
+              <div class="form-actions">
+                <button type="submit">Сохранить</button>
+              </div>
+            </form>
+          </section>
+        </div>
         <div class="menublock">
           <div class="buttonsblock">
             <button onclick="getStatus()">Status</button> &nbsp;
@@ -37,213 +59,41 @@
         </div>
       </div>
     </div>
+    <div id="client-modal" class="modal hidden">
+      <div class="modal__dialog">
+        <button class="modal__close" onclick="closeClientModal()" aria-label="Close modal">×</button>
+        <div id="client-modal-create">
+          <h3>Создать клиента</h3>
+          <form id="client-form">
+            <label>Имя клиента
+              <input id="client-name-input" type="text" placeholder="Client name" maxlength="120" />
+            </label>
+            <label>IP адрес (с CIDR)
+              <input id="client-ip-input" type="text" placeholder="10.8.0.5/32" />
+            </label>
+            <label class="checkbox">
+              <input id="client-download-checkbox" type="checkbox" checked />
+              Автоматически скачать .conf после создания
+            </label>
+            <div class="modal__actions">
+              <button type="submit">Создать</button>
+            </div>
+          </form>
+          <div id="client-form-error" class="modal__error"></div>
+        </div>
+        <div id="client-modal-result" class="hidden">
+          <h3>Конфигурация клиента</h3>
+          <div id="client-result-meta" class="modal__meta"></div>
+          <textarea id="client-config-preview" readonly rows="8"></textarea>
+          <div id="client-qr"></div>
+          <div class="modal__hint">QR содержит полный .conf, наведите камеру WireGuard клиента.</div>
+          <div class="modal__actions">
+            <button type="button" onclick="downloadClientConfig()">Скачать .conf</button>
+            <button type="button" onclick="copyClientConfig()">Копировать</button>
+            <button type="button" onclick="closeClientModal()">Закрыть</button>
+          </div>
+        </div>
+      </div>
+    </div>
 </body>
-<script type="text/javascript">
-// React и Vue — для лохов
-const currentIface = () => document.querySelector('#ifaces-list input[type="radio"]:checked')?.value;
-const getPass = () => unpack(document.querySelector('#passkey-input')?.value);
-
-function savePasskey() {
-  const inputVal = document.querySelector('#passkey-input')?.value;
-  if (inputVal === '') {
-    localStorage.removeItem('ps');
-  } else {
-    localStorage.setItem('ps', String(inputVal));
-  }
-  getStatus();
-}
-
-function getFreeIP() {
-  makeRequest({
-    url: `/api/config/freeIP?iface=${currentIface()}`,
-    type: 'GET',
-    callback: function (getFreeIPResp) {
-      var res = responseHandler(getFreeIPResp);
-      if (!res.success) {
-        console.error('Error on get free IP: ', res.data)
-        renderError(res.data);
-      } else {
-        freeIP = res.data
-      }
-    }
-  });
-}
-
-function getStatus() {
-  clearErrorAndTimeout();
-  var statusTab = document.getElementById('status-tab');
-  var configTab = document.getElementById('config-tab');
-  statusTab.style.display = 'block';
-  configTab.style.display = 'none';
-
-  makeRequest({
-    url: '/api/wireguard/status',
-    type: 'GET',
-    callback: function (response) {
-      var res = responseHandler(response, getPass());
-      if (!res.success) { renderError(res.data); }
-      else {
-        const { data: statsData } = res.data;
-        if (!statsData) {
-          renderError('Некорректный ключ расшифровки');
-          return;
-        }
-
-        var statusBlock = document.getElementById('status-block');
-        statusBlock.innerHTML = '';
-        const divElem = document.createElement('div');
-        divElem.innerHTML =
-          `<b>Interface name: </b> ${statsData.interface.name} <br />
-          <b>Public key: </b>${statsData.interface['public key']} <br />
-          <b>Listening port: </b>${statsData.interface['listening port']} <br /><br />
-          ${renderPeerBlocks(statsData.peers)} <br />`;
-        statusBlock.append(divElem);
-
-        timerId = setTimeout(getStatus, defaultUpdateInterval);
-      }
-    },
-    // data: JSON.stringify(data_to_send)
-  });
-}
-
-function getConfig() {
-  clearErrorAndTimeout();
-
-  var statusTab = document.getElementById('status-tab');
-  var configTab = document.getElementById('config-tab');
-  statusTab.style.display = 'none';
-  configTab.style.display = 'block';
-
-  makeRequest({
-    url: `/api/config?iface=${currentIface()}`,
-    type: 'GET',
-    callback: function (response) {
-      var res = responseHandler(response, getPass());
-      if (!res.success) { renderError(res.data); }
-      else {
-        const configData = res?.data;
-        if (!configData) {
-          renderError('Некорректный ключ расшифровки');
-          return;
-        }
-
-        configTab.innerHTML = '';
-        const divElem = document.createElement('div');
-        divElem.className = "text";
-        divElem.innerHTML =
-          '<h3>Interface</h3>' + objectToHTML(configData.interface) + '<br />' +
-          renderPeerBlocks(configData.peers);
-        configTab.append(divElem);
-      }
-    },
-    // data: JSON.stringify(data_to_send)
-  });
-}
-
-function addNewClient(){
-  clearErrorAndTimeout();
-
-  let newName = prompt('Введите имя (подпись) нового клиента', 'Client');
-  let newIPs = prompt('Введите желаемый внутренний IP нового клиента, либо удалите для автоматического назначения', freeIP);
-  if (newIPs.length > 0 && !validateIPWithSubnet(newIPs)) {
-    alert('Введён некорректный IP для нового клиента: ' + newIPs);
-    return;
-  }
-
-  makeRequest({
-    url: '/api/config/client/add',
-    type: 'POST',
-    callback: function (response) {
-      if (response.status === 200) {
-        const blob = new Blob([response.responseText]);
-        const link = document.createElement('a');
-        link.href = URL.createObjectURL(blob);
-        link.download = newName ? newName + '.conf' : 'Client.conf';
-        document.body.appendChild(link);
-        link.click();
-        document.body.removeChild(link);
-
-        getFreeIP(); // Получаем новый дефолтный IP для следующего клиента для подстановки
-      } else {
-        var res = responseHandler(response);
-        if (!res.success) {
-          renderError(res.data);
-        }
-      }
-    },
-    data: JSON.stringify({ name: newName, ip: newIPs, iface: currentIface() })
-  });
-}
-
-function tryReboot(){
-  clearErrorAndTimeout();
-
-  var statusTab = document.getElementById('status-tab');
-  var configTab = document.getElementById('config-tab');
-  statusTab.style.display = 'block';
-  configTab.style.display = 'none';
-
-  makeRequest({
-    url: `/api/wireguard/reboot?iface=${currentIface()}`,
-    type: 'GET',
-    callback: function (response) {
-      var preblock = document.getElementById('status-block');
-      var res = responseHandler(response);
-      if (!res.success) { renderError(res.data); }
-      else {
-        preblock.innerHTML = res.data;
-      }
-    },
-    // data: JSON.stringify(data_to_send)
-  });
-}
-
-function deleteClient(pubKey) {
-  if (!confirm('Вы уверены, что хотите удалить клиента? Это действие необратимо.')) {
-    return;
-  }
-
-  makeRequest({
-    url: '/api/config/client/remove',
-    type: 'POST',
-    callback: function(response) {
-      var res = responseHandler(response);
-      if (!res.success) {
-        renderError(res.data);
-      } else {
-        toast({ message: "Remove client success. Don't forget reboot Wireguard!", duration: 5000 });
-        // Обновляем текущий вид
-        var statusTab = document.getElementById('status-tab');
-        if (statusTab.style.display !== 'none') {
-          getStatus();
-        } else {
-          getConfig();
-        }
-      }
-    },
-    data: JSON.stringify({ iface: currentIface(), pubKey: pubKey })
-  });
-}
-
-document.addEventListener("DOMContentLoaded", () => {
-  const passInput = document.querySelector('#passkey-input');
-  const savedKey = localStorage.getItem('ps');
-  if (passInput && isExistAndNotNull(savedKey) && savedKey !== '') { passInput.value = savedKey; }
-
-  // Получаем список доступных интерфейсов прежде чем запрашивать статус
-  makeRequest({
-    url: '/api/config/interfaces',
-    type: 'GET',
-    callback: function (response) {
-      var res = responseHandler(response);
-      if (!res.success || !Array.isArray(res.data)) { renderError(res.data); }
-      else {
-        renderInterfaceList(res.data, document.getElementById('ifaces-list'));
-        getFreeIP();
-        setTimeout(getStatus, 1000);
-      }
-    },
-  });
-});
-</script>
 </html>

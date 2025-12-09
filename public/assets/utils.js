@@ -5,6 +5,52 @@ const defaultUpdateInterval = 5000;
 const ipRegex = /^(([0-9]|[1-9][0-9]|1[0-9]{2}|2[0-4][0-9]|25[0-5])\.){3}([0-9]|[1-9][0-9]|1[0-9]{2}|2[0-4][0-9]|25[0-5])$/;
 const validateIPWithSubnet = (input) => ipRegex.test(input);
 
+var runtimeRefreshPromise = null;
+
+function getRuntimeState() {
+  return window.__WG_RUNTIME__ || null;
+}
+
+function runtimeNeedsRefresh() {
+  const runtime = getRuntimeState();
+  if (!runtime) return true;
+  const ttl = runtime.expiresAt - Date.now();
+  const threshold = Math.max(5000, Math.floor(runtime.rotationIntervalMs * 0.2));
+  return ttl < threshold;
+}
+
+function refreshRuntimeCode(force) {
+  if (!force && runtimeRefreshPromise) {
+    return runtimeRefreshPromise;
+  }
+  runtimeRefreshPromise = new Promise((resolve, reject) => {
+    const script = document.createElement('script');
+    script.src = `/assets/runtime.js?ts=${Date.now()}`;
+    script.async = true;
+    script.onload = () => {
+      script.remove();
+      resolve();
+    };
+    script.onerror = err => {
+      script.remove();
+      console.error('Unable to refresh runtime code', err);
+      reject(err);
+    };
+    document.head.appendChild(script);
+  }).finally(() => {
+    runtimeRefreshPromise = null;
+  });
+  return runtimeRefreshPromise;
+}
+
+function ensureRuntimeFresh(callback) {
+  if (!runtimeNeedsRefresh()) {
+    callback();
+    return;
+  }
+  refreshRuntimeCode(true).finally(callback);
+}
+
 function makeRequest(makeRequestArguments) {
   var requestContentType = (typeof(makeRequestArguments.contentType) !== 'undefined') ? makeRequestArguments.contentType : 'application/json';
   var httpRequest = null;
@@ -66,13 +112,20 @@ function makeRequest(makeRequestArguments) {
     }
   }
 
-  httpRequest.onreadystatechange = serveContent;
-  httpRequest.open(makeRequestArguments.type, makeRequestArguments.url, true);
-  httpRequest.setRequestHeader('X-verification-code', 'HGJGRGSADF12342kjSJF3riuhfkds3');
-	if (makeRequestArguments.token) { httpRequest.setRequestHeader('X-CSRF-TOKEN', makeRequestArguments.token); }
-  if (!makeRequestArguments.setContentTypeByBrowser) { httpRequest.setRequestHeader('Content-Type', requestContentType); }
-  if (makeRequestArguments.type === 'GET') { httpRequest.send(); }
-  else { httpRequest.send(makeRequestArguments.data); }
+  function sendRequest() {
+    httpRequest.onreadystatechange = serveContent;
+    httpRequest.open(makeRequestArguments.type, makeRequestArguments.url, true);
+    var runtime = getRuntimeState();
+    if (runtime && runtime.verificationCode) {
+      httpRequest.setRequestHeader('X-verification-code', runtime.verificationCode);
+    }
+    if (makeRequestArguments.token) { httpRequest.setRequestHeader('X-CSRF-TOKEN', makeRequestArguments.token); }
+    if (!makeRequestArguments.setContentTypeByBrowser) { httpRequest.setRequestHeader('Content-Type', requestContentType); }
+    if (makeRequestArguments.type === 'GET') { httpRequest.send(); }
+    else { httpRequest.send(makeRequestArguments.data); }
+  }
+
+  ensureRuntimeFresh(sendRequest);
 }
 
 function responseHandler(response, passkey) {
@@ -85,20 +138,17 @@ function responseHandler(response, passkey) {
 		}
     try {
       convertedResponse = JSON.parse(response);
-      if (!convertedResponse.hasOwnProperty('success')) {
-        console.error('Response seems incorrect: ', convertedResponse);
-      } else if (convertedResponse.success && passkey) {
-        const cypherData = convertedResponse.data;
-        if (cypherData.hasOwnProperty('v') && cypherData.hasOwnProperty('data')) {
-          const { data, v: vector } = cypherData;
+      if (passkey) {
+        if (convertedResponse.hasOwnProperty('v') && convertedResponse.hasOwnProperty('data')) {
+          const { data, v: vector } = convertedResponse;
           // Распаковка данных
           const decrypted = JSON.parse(decrypt(unpack(data), passkey, unpack(vector)));
-          result.data = decrypted;
-          result.success = true;
-          return result;
+          convertedResponse.data = decrypted;
         } else {
           console.error('Incorrect encrypted response: ', convertedResponse);
         }
+      } else if (!convertedResponse.hasOwnProperty('success')) {
+        console.error('Response seems incorrect: ', convertedResponse);
       }
     } catch (parseErr) {
       console.log('Error in responseHandler on parsing response: ', parseErr);
@@ -111,8 +161,8 @@ function responseHandler(response, passkey) {
     console.log("Unknown type of response: ", response);
   }
 
-  result.success = (typeof(convertedResponse) !== "string") && convertedResponse && !convertedResponse.error;
-  result.data = !result.success ? convertedResponse.error : convertedResponse.data; // Ошибку передаём там же в дата, чтоб упростить логику
+  result.success = (typeof(convertedResponse) !== "string") && convertedResponse && !convertedResponse.errors;
+  result.data = !result.success ? convertedResponse.errors : convertedResponse.data;
   return result;
 }
 
@@ -146,8 +196,9 @@ function renderPeerBlocks(peersData = []) {
     const pubKey = peer['public key'] || peer.PublicKey;
     const jsSafePubKey = pubKey.replace(/\\/g, '\\\\').replace(/'/g, "\\'").replace(/"/g, '\\"'); // Экранирование для JS строки
 
-    html += `<div class="peerblock"><h4>${peer.name || '[peer.name not setted]'} `;
-    html += `<button class="delete-button" onclick="deleteClient('${jsSafePubKey}')">Удалить</button></h4>`;
+    html += `<div class="peerblock"><div class="peerblock__head"><h4>${peer.name || '[peer.name not setted]'}</h4>`;
+    html += `<div class="peerblock__actions"><button class="link-button" onclick="openClientConfig('${jsSafePubKey}')">Конфиг</button>`;
+    html += `<button class="delete-button" onclick="deleteClient('${jsSafePubKey}')">Удалить</button></div></div>`;
     html += `<div class="pubkeyblock">${pubKey}</div>`;
     html += '<div>';
     if (peer.PresharedKey) { html += `<b>Preshared Key: </b>${peer.PresharedKey} <br />` };

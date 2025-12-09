@@ -1,31 +1,22 @@
 {
   "compilerOptions": {
-    "target": "ES2020",
-    "module": "ES2022",
-    "lib": ["ES2020", "ES2018"],
+    "target": "ES2022",
+    "lib": ["ES2022"],
+    "module": "NodeNext",
+    "moduleResolution": "NodeNext",
+    "rootDir": "./src",
     "outDir": "./dist",
-    "rootDir": ".",
-    "baseUrl": ".",
-    "allowJs": true,
     "strict": true,
     "esModuleInterop": true,
-    "skipLibCheck": true,
     "forceConsistentCasingInFileNames": true,
-    "moduleResolution": "node",
+    "skipLibCheck": true,
+    "sourceMap": false,
     "resolveJsonModule": true,
-    "experimentalDecorators": true,
-    "removeComments": true,
-    "emitDecoratorMetadata": true,
-    "listEmittedFiles": true,
-    "paths": {
-      "@middlewares": ["./middlewares/index.js"],
-      "@middlewares/*": ["./middlewares/*"],
-      "@services": ["./services/index.js"],
-      "@services/*": ["./services/*"],
-      "@utils": ["./utils/index.js"],
-      "@utils/*": ["./utils/*"]
-    }
+    "declaration": false,
+    "allowSyntheticDefaultImports": true
   },
-  "include": ["services/**/*", "middlewares/**/*", "utils/**/*", "server.ts", "types.d.ts"],
-  "exclude": ["node_modules", "dist", ".data"]
+  "include": ["src"],
+  "ts-node": {
+    "transpileOnly": true
+  }
 }

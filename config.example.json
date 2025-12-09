@@ -1,6 +1,13 @@
 {
   "defaultInterface": "wg",
   "frontServerPort": 8877,
-  "allowedOrigins": [ "http://localhost:8877", "http://127.0.0.1:8877", "http://10.8.1.1:8877" ],
-  "frontendPasskey": "nP02IO8s638ThgOQTvo6Q=="
+  "allowedOrigins": [
+    "http://localhost:8877",
+    "http://127.0.0.1:8877",
+    "http://10.8.1.1:8877"
+  ],
+  "frontendPasskey": "nP02IO8s638ThgOQTvo6Q==",
+  "dns": ["10.8.1.1"],
+  "clientEncryptionPass": "change-me",
+  "runtimeRotationMinutes": 5
 }

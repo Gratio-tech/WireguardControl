@@ -1,7 +1,6 @@
 import { Router } from 'express';
-
-import { checkInterface } from '@middlewares';
-import { getWGStatus, rebootWGinterface } from '@services';
+import { checkInterface } from '../middlewares/index.js';
+import { getWGStatus, rebootWGinterface } from '../services/index.js';
 
 const router = Router({ mergeParams: true });
 

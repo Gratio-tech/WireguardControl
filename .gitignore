@@ -1,13 +1,9 @@
 /node_modules
+/dist
 
 # /public
-dist
-
-# SSL Sert
-/public/.well-known/
 
 package-lock.json
-/storage/*.key
 .env
 npm-debug.log
 yarn-error.log
@@ -22,3 +18,4 @@ yarn-error.log
 
 # Ignore config file
 config.json
+public/assets/runtime.js

@@ -29,6 +29,8 @@ fieldset { border: 1px solid rgba(120, 130, 140, 0.6); border-radius: 5px; }
 input[type="text"] { background: transparent; border: 1px solid rgba(120,125,140, 0.5); border-radius: 4px; margin-top: 10px; width: 100%; box-sizing: border-box; padding: 5px; color: #fff; }
 input:focus-visible { outline-width: 0; border: none !important; outline: none; }
 
+.hidden { display: none !important; }
+
 #error-block { display: none; }
 #errors-code { color: #ff5555; }
 #config-tab, #status-tab { flex-grow: 1; }
@@ -41,7 +43,26 @@ input:focus-visible { outline-width: 0; border: none !important; outline: none; 
 .peerblock { background: rgba(100, 110, 130, 0.2); border-radius: 8px; padding: 10px; margin-bottom: 20px; }
 .peerblock h4 { margin: 0px 0px 5px 0px; }
 .peerblock .pubkeyblock { font-size: 85%; color: #ccc; margin-bottom: 10px; }
-.peerblock .delete-button { padding: 2px 5px; font-size: 80%; border: 1px solid red; color: red; float: right; }
+.peerblock__head { display: flex; justify-content: space-between; align-items: center; gap: 10px; }
+.peerblock__actions { display: flex; gap: 6px; }
+.peerblock .delete-button { padding: 2px 5px; font-size: 80%; border: 1px solid red; color: red; background: transparent; }
+.link-button { padding: 2px 6px; font-size: 80%; border: 1px solid #298ff5; color: #298ff5; background: transparent; }
+.link-button:hover { color: #fff; }
+
+.modal { position: fixed; inset: 0; background: rgba(0,0,0,0.7); display: flex; align-items: center; justify-content: center; z-index: 10; }
+.modal.hidden { display: none; }
+.modal__dialog { background: #1c1c24; padding: 20px; border-radius: 10px; width: 90%; max-width: 500px; max-height: 90vh; overflow-y: auto; position: relative; }
+.modal__close { position: absolute; top: 10px; right: 10px; background: transparent; border: none; color: #fff; font-size: 24px; cursor: pointer; }
+.modal__actions { display: flex; gap: 10px; margin-top: 15px; flex-wrap: wrap; }
+.modal__error { color: #ff6b6b; margin-top: 10px; min-height: 20px; }
+.modal__meta { margin-bottom: 10px; }
+.modal__hint { font-size: 12px; color: #ccc; margin-top: 8px; }
+.checkbox { display: flex; align-items: center; gap: 8px; margin-top: 10px; font-size: 14px; }
+.modal textarea { width: 100%; box-sizing: border-box; background: #111; color: #fff; border: 1px solid rgba(255,255,255,0.1); border-radius: 6px; padding: 10px; }
+#client-qr { margin: 15px auto; width: 220px; height: 220px; }
+.settings-card { margin-top: 20px; padding: 15px; border: 1px solid rgba(255,255,255,0.1); border-radius: 10px; background: rgba(255,255,255,0.04); }
+.settings-card form label { display: block; margin-bottom: 12px; }
+.form-actions { margin-top: 12px; }
 
 @media (max-width: 840px) {
     body { padding: 30px; }
@@ -50,4 +71,5 @@ input:focus-visible { outline-width: 0; border: none !important; outline: none; 
     .infoblock { flex-direction: column; }
     .menublock { margin-left: 0; width: 100%; }
     .buttonsblock { display: flex; flex-direction: row; }
+    .modal__dialog { width: 95%; }
 }

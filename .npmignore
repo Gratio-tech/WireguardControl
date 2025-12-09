@@ -1,0 +1,8 @@
+src
+node_modules
+scripts
+.data
+.git
+.sync.json
+config.json
+public/assets/runtime.js
