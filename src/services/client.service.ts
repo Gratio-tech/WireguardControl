@@ -16,6 +16,7 @@ import {
   getFirstAvailableIP,
   loadServerConfig,
   removePeerFromConfig,
+  resolveWireguardPath,
 } from '../utils/index.js';
 import { PEERS_PATH } from '../utils/constants.js';
 import { decryptSecret, encryptSecret } from '../utils/crypto.js';
@@ -88,7 +89,7 @@ export const addNewClient = async (req: Request, res: Response, next: NextFuncti
     }
     const clientIP: string = newIP;
     await appendDataToConfig(
-      `/etc/wireguard/${iface}.conf`,
+      resolveWireguardPath(iface),
       formatObjectToConfigSection('Peer', {
         PublicKey: newClientData.pubKey,
         PresharedKey: newClientData.presharedKey,

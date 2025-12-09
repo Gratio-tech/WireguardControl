@@ -1,5 +1,6 @@
 import fs from 'fs';
 import { getNameFromSavedData, normalizeLineBreaks } from './tools.js';
+import { resolveWireguardPath } from './constants.js';
 
 interface ParsedStatus {
   interface: Record<string, string>;
@@ -73,7 +74,7 @@ export const parseInterfaceConfig = (iface: string) => {
   if (!iface || typeof iface !== 'string') {
     throw new Error('Interface must be a string!');
   }
-  const interfacePath = `/etc/wireguard/${iface}.conf`;
+  const interfacePath = resolveWireguardPath(iface);
   if (!fs.existsSync(interfacePath)) {
     throw new Error('Incorrect interface!');
   }
