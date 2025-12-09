@@ -1,6 +1,1 @@
-import express, { Router } from 'express';
-import { PUBLIC_DIR, PUBLIC_ASSETS_DIR } from '../utils/constants.js';
-const router = Router({ mergeParams: true });
-router.use('/', express.static(PUBLIC_DIR));
-router.use('/assets', express.static(PUBLIC_ASSETS_DIR, { cacheControl: false }));
-export default router;
+import t,{Router as r}from"express";import{PUBLIC_DIR as s,PUBLIC_ASSETS_DIR as o}from"../utils/constants.js";const e=r({mergeParams:!0});e.use("/",t.static(s));e.use("/assets",t.static(o,{cacheControl:!1}));var u=e;export{u as default};

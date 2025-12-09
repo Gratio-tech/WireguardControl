@@ -1,15 +1,1 @@
-import { Router, json } from 'express';
-import { checkInterface } from '../middlewares/index.js';
-import { addNewClient, getClientConfig, removeClient } from '../services/client.service.js';
-import { getFirstFreeIP, getInterfaceConfig, getInterfaces, getFrontendSettings, updateFrontendSettings, } from '../services/config.service.js';
-const router = Router({ mergeParams: true });
-const jsonParser = json({ limit: '10mb' });
-router.get('/', checkInterface, getInterfaceConfig);
-router.get('/interfaces', getInterfaces);
-router.get('/freeIP', checkInterface, getFirstFreeIP);
-router.get('/frontend', getFrontendSettings);
-router.post('/frontend', jsonParser, updateFrontendSettings);
-router.post('/client/add', jsonParser, checkInterface, addNewClient);
-router.post('/client/remove', jsonParser, checkInterface, removeClient);
-router.get('/client/:pubKey/config', getClientConfig);
-export default router;
+import{Router as n,json as o}from"express";import{checkInterface as t}from"../middlewares/index.js";import{addNewClient as i,getClientConfig as g,removeClient as f}from"../services/client.service.js";import{getFirstFreeIP as m,getInterfaceConfig as s,getInterfaces as c,getFrontendSettings as a,updateFrontendSettings as d}from"../services/config.service.js";const e=n({mergeParams:!0}),r=o({limit:"10mb"});e.get("/",t,s);e.get("/interfaces",c);e.get("/freeIP",t,m);e.get("/frontend",a);e.post("/frontend",r,d);e.post("/client/add",r,t,i);e.post("/client/remove",r,t,f);e.get("/client/:pubKey/config",g);var I=e;export{I as default};

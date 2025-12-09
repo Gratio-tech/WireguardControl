@@ -29,6 +29,8 @@ fieldset { border: 1px solid rgba(120, 130, 140, 0.6); border-radius: 5px; }
 input[type="text"] { background: transparent; border: 1px solid rgba(120,125,140, 0.5); border-radius: 4px; margin-top: 10px; width: 100%; box-sizing: border-box; padding: 5px; color: #fff; }
 input:focus-visible { outline-width: 0; border: none !important; outline: none; }
 
+.hidden { display: none !important; }
+
 #error-block { display: none; }
 #errors-code { color: #ff5555; }
 #config-tab, #status-tab { flex-grow: 1; }
@@ -58,6 +60,9 @@ input:focus-visible { outline-width: 0; border: none !important; outline: none; 
 .checkbox { display: flex; align-items: center; gap: 8px; margin-top: 10px; font-size: 14px; }
 .modal textarea { width: 100%; box-sizing: border-box; background: #111; color: #fff; border: 1px solid rgba(255,255,255,0.1); border-radius: 6px; padding: 10px; }
 #client-qr { margin: 15px auto; width: 220px; height: 220px; }
+.settings-card { margin-top: 20px; padding: 15px; border: 1px solid rgba(255,255,255,0.1); border-radius: 10px; background: rgba(255,255,255,0.04); }
+.settings-card form label { display: block; margin-bottom: 12px; }
+.form-actions { margin-top: 12px; }
 
 @media (max-width: 840px) {
     body { padding: 30px; }

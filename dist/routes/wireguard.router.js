@@ -1,7 +1,1 @@
-import { Router } from 'express';
-import { checkInterface } from '../middlewares/index.js';
-import { getWGStatus, rebootWGinterface } from '../services/index.js';
-const router = Router({ mergeParams: true });
-router.get('/status', getWGStatus);
-router.get('/reboot', checkInterface, rebootWGinterface);
-export default router;
+import{Router as e}from"express";import{checkInterface as r}from"../middlewares/index.js";import{getWGStatus as o,rebootWGinterface as m}from"../services/index.js";const t=e({mergeParams:!0});t.get("/status",o);t.get("/reboot",r,m);var c=t;export{c as default};

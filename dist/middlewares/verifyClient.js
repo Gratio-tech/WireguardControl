@@ -1,9 +1,1 @@
-import { isValidRuntimeCode } from '../core/runtimeGuard.js';
-export const verifyClient = (req, res, next) => {
-    const verificationCode = req.headers['x-verification-code'];
-    if (!isValidRuntimeCode(verificationCode)) {
-        res.status(403).json({ message: 'Forbidden' });
-        return;
-    }
-    next();
-};
+import{isValidRuntimeCode as r}from"../core/runtimeGuard.js";const s=(e,i,o)=>{const t=e.headers["x-verification-code"];if(!r(t)){i.status(403).json({message:"Forbidden"});return}o()};export{s as verifyClient};

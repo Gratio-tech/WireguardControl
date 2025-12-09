@@ -32,6 +32,7 @@
     "@types/cookie-parser": "^1.4.9",
     "@types/cors": "^2.8.19",
     "@types/express": "^5.0.3",
+    "esbuild": "^0.24.0",
     "nodemon": "^2.0.15",
     "ts-node": "^10.9.2",
     "prettier": "3.5.3",
@@ -42,7 +43,7 @@
     "dev": "cross-env NODE_ENV=development nodemon --watch src --ext ts,json --exec \"node --loader ts-node/esm ./src/server.ts\"",
     "start": "cross-env NODE_ENV=production node ./dist/server.js",
     "style": "prettier --write 'src/**/*.{ts,tsx}' --cache -l",
-    "build": "npm run style && tsc && tsc-alias"
+    "build": "npm run style && tsc && tsc-alias && node ./scripts/minify.mjs"
   },
   "prettier": {
     "trailingComma": "es5",

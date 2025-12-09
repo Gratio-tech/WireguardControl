@@ -1,48 +1,7 @@
-import fs from 'fs';
-import path from 'path';
-import { generateRuntimeCode } from '../utils/crypto.js';
-import { PUBLIC_ASSETS_DIR, RUNTIME_FILE_PATH } from '../utils/constants.js';
-const state = {
-    code: '',
-    expiresAt: 0,
-    rotationIntervalMs: 5 * 60 * 1000,
-};
-const ensureRuntimeDir = () => {
-    if (!fs.existsSync(PUBLIC_ASSETS_DIR)) {
-        fs.mkdirSync(PUBLIC_ASSETS_DIR, { recursive: true });
-    }
-};
-const buildRuntimeScript = () => {
-    return `window.__WG_RUNTIME__ = Object.freeze({\n  verificationCode: '${state.code}',\n  generatedAt: ${Date.now()},\n  expiresAt: ${state.expiresAt},\n  rotationIntervalMs: ${state.rotationIntervalMs}\n});\n`;
-};
-const writeRuntimeScript = () => {
-    ensureRuntimeDir();
-    fs.writeFileSync(RUNTIME_FILE_PATH, buildRuntimeScript(), 'utf-8');
-};
-const rotateCode = () => {
-    state.code = generateRuntimeCode();
-    state.expiresAt = Date.now() + state.rotationIntervalMs;
-    writeRuntimeScript();
-};
-export const initRuntimeGuard = (rotationMinutes) => {
-    const rotationMs = Math.max(1, rotationMinutes) * 60 * 1000;
-    state.rotationIntervalMs = rotationMs;
-    if (state.timer) {
-        clearInterval(state.timer);
-    }
-    rotateCode();
-    state.timer = setInterval(rotateCode, rotationMs);
-};
-export const getRuntimeCode = () => state.code;
-export const isValidRuntimeCode = (code) => {
-    const incoming = Array.isArray(code) ? code[0] : code;
-    return Boolean(incoming) && incoming === state.code;
-};
-export const forceRotateRuntimeCode = () => {
-    rotateCode();
-};
-export const getRuntimeScriptPath = () => path.relative(process.cwd(), RUNTIME_FILE_PATH);
-export const getRuntimeMetadata = () => ({
-    expiresAt: state.expiresAt,
-    rotationIntervalMs: state.rotationIntervalMs,
+import o from"fs";import s from"path";import{generateRuntimeCode as c}from"../utils/crypto.js";import{PUBLIC_ASSETS_DIR as i,RUNTIME_FILE_PATH as a}from"../utils/constants.js";const t={code:"",expiresAt:0,rotationIntervalMs:5*60*1e3},m=()=>{o.existsSync(i)||o.mkdirSync(i,{recursive:!0})},p=()=>`window.__WG_RUNTIME__ = Object.freeze({
+  verificationCode: '${t.code}',
+  generatedAt: ${Date.now()},
+  expiresAt: ${t.expiresAt},
+  rotationIntervalMs: ${t.rotationIntervalMs}
 });
+`,u=()=>{m(),o.writeFileSync(a,p(),"utf-8")},n=()=>{t.code=c(),t.expiresAt=Date.now()+t.rotationIntervalMs,u()},R=e=>{const r=Math.max(1,e)*60*1e3;t.rotationIntervalMs=r,t.timer&&clearInterval(t.timer),n(),t.timer=setInterval(n,r)},v=()=>t.code,M=e=>{const r=Array.isArray(e)?e[0]:e;return!!r&&r===t.code},f=()=>{n()},A=()=>s.relative(process.cwd(),a),S=()=>({expiresAt:t.expiresAt,rotationIntervalMs:t.rotationIntervalMs});export{f as forceRotateRuntimeCode,v as getRuntimeCode,S as getRuntimeMetadata,A as getRuntimeScriptPath,R as initRuntimeGuard,M as isValidRuntimeCode};

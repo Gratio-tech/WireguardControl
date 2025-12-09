@@ -1,10 +1,1 @@
-import { ifaceCorrect } from '../utils/index.js';
-export const checkInterface = (req, res, next) => {
-    const ifacePOST = req.body?.iface;
-    const ifaceGET = req.query?.iface;
-    if (!ifaceCorrect(ifacePOST) && !ifaceCorrect(ifaceGET)) {
-        res.status(422).json({ success: false, errors: 'Incorrect interface!' });
-        return;
-    }
-    next();
-};
+import{ifaceCorrect as e}from"../utils/index.js";const a=(c,r,t)=>{const o=c.body?.iface,s=c.query?.iface;if(!e(o)&&!e(s)){r.status(422).json({success:!1,errors:"Incorrect interface!"});return}t()};export{a as checkInterface};

@@ -13,6 +13,12 @@
 
   const currentIface = () => document.querySelector('#ifaces-list input[type="radio"]:checked')?.value;
   const getPass = () => unpack(document.querySelector('#passkey-input')?.value || '');
+  const configDetailsNode = document.getElementById('config-details');
+  const settingsPanel = document.getElementById('frontend-settings-panel');
+  const settingsForm = document.getElementById('frontend-settings-form');
+  const dnsInput = document.getElementById('dns-input');
+  const passUpdateInput = document.getElementById('frontend-passkey-update');
+  const runtimeInput = document.getElementById('runtime-rotation-input');
 
   function savePasskey() {
     const inputVal = document.querySelector('#passkey-input')?.value || '';
@@ -103,12 +109,12 @@
           renderError('Некорректный ключ расшифровки');
           return;
         }
-        configTab.innerHTML = '';
-        const divElem = document.createElement('div');
-        divElem.className = 'text';
-        divElem.innerHTML = '<h3>Interface</h3>' + objectToHTML(configData.interface) + '<br />' + renderPeerBlocks(configData.peers);
-        configTab.append(divElem);
-        renderFrontendSettingsForm(configTab);
+        if (configDetailsNode) {
+          configDetailsNode.innerHTML = '<h3>Interface</h3>' + objectToHTML(configData.interface) + '<br />' + renderPeerBlocks(configData.peers);
+        }
+        if (settingsPanel) {
+          settingsPanel.classList.remove('hidden');
+        }
       }
     });
   }
@@ -184,58 +190,29 @@
         const res = responseHandler(response);
         if (res.success && res.data) {
           state.frontendSettings = res.data;
-          populateFrontendSettingsForm();
+          applyFrontendSettingsToForm();
         }
       }
     });
   }
 
-  function renderFrontendSettingsForm(container) {
-    let form = document.getElementById('frontend-settings-form');
-    if (form) form.remove();
-    form = document.createElement('form');
-    form.id = 'frontend-settings-form';
-    form.innerHTML = `
-      <h3>Настройки интерфейса</h3>
-      <label>DNS (через запятую)
-        <input id="dns-input" type="text" placeholder="1.1.1.1, 1.0.0.1" />
-      </label>
-      <label>Новый frontendPasskey
-        <input id="frontend-passkey-update" type="text" placeholder="Оставьте пустым, чтобы не менять" />
-      </label>
-      <label>Период обновления runtime (мин)
-        <input id="runtime-rotation-input" type="number" min="1" value="5" />
-      </label>
-      <div class="modal__actions">
-        <button type="submit">Сохранить</button>
-      </div>
-    `;
-    form.addEventListener('submit', evt => {
-      evt.preventDefault();
-      saveFrontendSettings();
-    });
-    container.appendChild(form);
-    populateFrontendSettingsForm();
-  }
-
-  function populateFrontendSettingsForm() {
-    const dnsInput = document.getElementById('dns-input');
-    const runtimeInput = document.getElementById('runtime-rotation-input');
+  function applyFrontendSettingsToForm() {
     if (dnsInput && Array.isArray(state.frontendSettings.dns)) {
       dnsInput.value = state.frontendSettings.dns.join(', ');
     }
     if (runtimeInput && state.frontendSettings.runtimeRotationMinutes) {
       runtimeInput.value = state.frontendSettings.runtimeRotationMinutes;
     }
+    if (settingsPanel) {
+      settingsPanel.classList.remove('hidden');
+    }
   }
 
-  function saveFrontendSettings() {
-    const dnsInput = document.getElementById('dns-input');
-    const passInput = document.getElementById('frontend-passkey-update');
-    const runtimeInput = document.getElementById('runtime-rotation-input');
+  function handleFrontendSettingsSubmit(event) {
+    event.preventDefault();
     const payload = {
       dns: dnsInput?.value || '',
-      frontendPasskey: passInput?.value || undefined,
+      frontendPasskey: passUpdateInput?.value || undefined,
       runtimeRotationMinutes: runtimeInput?.value ? Number(runtimeInput.value) : undefined
     };
     makeRequest({
@@ -248,7 +225,7 @@
           renderError(res.data);
         } else {
           toast({ message: 'Настройки сохранены', duration: 4000 });
-          if (passInput) passInput.value = '';
+          if (passUpdateInput) passUpdateInput.value = '';
           fetchFrontendSettings();
           refreshRuntimeCode(true);
         }
@@ -443,6 +420,9 @@
   function initApp() {
     initPassInput();
     setupClientModal();
+    if (settingsForm) {
+      settingsForm.addEventListener('submit', handleFrontendSettingsSubmit);
+    }
     fetchInterfaces();
     fetchFrontendSettings();
     refreshRuntimeCode();

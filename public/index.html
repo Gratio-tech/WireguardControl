@@ -24,7 +24,26 @@
           <div id="error-block"><pre id="errors-code"></pre></div>
           <div id="status-block"></div>
         </div>
-        <div id="config-tab" style="display: none;"></div>
+        <div id="config-tab" style="display: none;">
+          <div id="config-details" class="text"></div>
+          <section id="frontend-settings-panel" class="settings-card hidden">
+            <h3>Настройки интерфейса</h3>
+            <form id="frontend-settings-form">
+              <label>DNS (через запятую)
+                <input id="dns-input" type="text" placeholder="1.1.1.1, 1.0.0.1" />
+              </label>
+              <label>Новый frontendPasskey
+                <input id="frontend-passkey-update" type="text" placeholder="Оставьте пустым, чтобы не менять" />
+              </label>
+              <label>Период обновления runtime (мин)
+                <input id="runtime-rotation-input" type="number" min="1" value="5" />
+              </label>
+              <div class="form-actions">
+                <button type="submit">Сохранить</button>
+              </div>
+            </form>
+          </section>
+        </div>
         <div class="menublock">
           <div class="buttonsblock">
             <button onclick="getStatus()">Status</button> &nbsp;

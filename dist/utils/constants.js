@@ -1,11 +1,1 @@
-import path from 'path';
-export const PROJECT_ROOT = process.cwd();
-export const DATA_DIR = path.resolve(PROJECT_ROOT, '.data');
-export const PEERS_PATH = path.resolve(DATA_DIR, 'peers.json');
-export const INTERFACES_PATH = path.resolve(DATA_DIR, 'interfaces.json');
-export const CONFIG_PATH = path.resolve(PROJECT_ROOT, 'config.json');
-export const CONFIG_EXAMPLE_PATH = path.resolve(PROJECT_ROOT, 'config.example.json');
-export const PUBLIC_DIR = path.resolve(PROJECT_ROOT, 'public');
-export const PUBLIC_ASSETS_DIR = path.resolve(PUBLIC_DIR, 'assets');
-export const RUNTIME_FILE_PATH = path.resolve(PUBLIC_ASSETS_DIR, 'runtime.js');
-export const DEFAULT_RUNTIME_ROTATION_MINUTES = 5;
+import o from"path";const e=process.cwd(),s=o.resolve(e,".data"),c=o.resolve(s,"peers.json"),p=o.resolve(s,"interfaces.json"),T=o.resolve(e,"config.json"),_=o.resolve(e,"config.example.json"),t=o.resolve(e,"public"),r=o.resolve(t,"assets"),E=o.resolve(r,"runtime.js"),I=5;export{_ as CONFIG_EXAMPLE_PATH,T as CONFIG_PATH,s as DATA_DIR,I as DEFAULT_RUNTIME_ROTATION_MINUTES,p as INTERFACES_PATH,c as PEERS_PATH,e as PROJECT_ROOT,r as PUBLIC_ASSETS_DIR,t as PUBLIC_DIR,E as RUNTIME_FILE_PATH};
