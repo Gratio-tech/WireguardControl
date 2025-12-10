@@ -67,9 +67,9 @@
           renderError(res.data);
           return;
         }
-        const statsData = res.data?.data;
-        if (!statsData) {
-          renderError('Некорректный ключ расшифровки');
+        const statsData = res.data;
+        if (!statsData || !Object.hasOwnProperty(statsData, 'interface')) {
+          renderError('Некорректный ключ расшифровки, либо данные не валидны');
           return;
         }
         const statusBlock = document.getElementById('status-block');
