@@ -68,7 +68,7 @@
           return;
         }
         const statsData = res.data;
-        if (!statsData || !Object.hasOwnProperty(statsData, 'interface')) {
+        if (!statsData || !Object.hasOwn(statsData, 'interface')) {
           renderError('Некорректный ключ расшифровки, либо данные не валидны');
           return;
         }
@@ -333,10 +333,6 @@
     if (resultMeta) {
       resultMeta.innerHTML = `<b>${payload.client.name || 'Client'}</b> — ${payload.client.ip}`;
     }
-    const preview = document.getElementById('client-config-preview');
-    if (preview) {
-      preview.value = payload.config;
-    }
     openClientModal('result');
     renderClientQR(payload.config);
     if (state.modal.autoDownload) {
@@ -346,8 +342,8 @@
 
   function openClientConfig(pubKey) {
     openClientModal('result');
-    const preview = document.getElementById('client-config-preview');
-    if (preview) preview.value = 'Загрузка...';
+    const modal = document.getElementById('client-modal');
+    modal.style.cursor = 'wait';
     const resultMeta = document.getElementById('client-result-meta');
     if (resultMeta) resultMeta.innerHTML = '';
     makeRequest({
@@ -355,6 +351,7 @@
       type: 'GET',
       callback: response => {
         const res = responseHandler(response, getPass());
+        modal.style.cursor = 'auto';
         if (!res.success) {
           renderError(res.data);
           return;
