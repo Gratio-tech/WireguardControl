@@ -128,6 +128,10 @@ function makeRequest(makeRequestArguments) {
   ensureRuntimeFresh(sendRequest);
 }
 
+function isEncrypted(input) {
+  return (typeof input === 'object' && input.hasOwnProperty('data') && input.hasOwnProperty('v'));
+}
+
 function responseHandler(response, passkey) {
   var result = { success: false, data: null };
   var convertedResponse;
@@ -139,23 +143,25 @@ function responseHandler(response, passkey) {
     try {
       convertedResponse = JSON.parse(response);
       if (passkey) {
-        if (convertedResponse.hasOwnProperty('v') && convertedResponse.hasOwnProperty('data')) {
-          const { data, v: vector } = convertedResponse;
+        // В ответе может быть вложенность { data: { data, v} }
+        if (isEncrypted(convertedResponse) || isEncrypted(convertedResponse?.data)) {
+          const { data, v: vector } = isEncrypted(convertedResponse?.data) ? convertedResponse?.data : convertedResponse;
           // Распаковка данных
           const decrypted = JSON.parse(decrypt(unpack(data), passkey, unpack(vector)));
           convertedResponse.data = decrypted;
         } else {
-          console.error('Incorrect encrypted response: ', convertedResponse);
+          console.error('Incorrect crypted response: ', convertedResponse);
         }
       } else if (!convertedResponse.hasOwnProperty('success')) {
-        console.error('Response seems incorrect: ', convertedResponse);
+        console.error('No passkey provided (not encrypted handler) or response seems incorrect: ', convertedResponse);
       }
+
     } catch (parseErr) {
       console.log('Error in responseHandler on parsing response: ', parseErr);
       console.log('Response is: ', response);
     }
   } else if (response.hasOwnProperty('success')) {
-    console.log('Seems like response is already encoded: ', response);
+    console.log('Seems like response is already parsed: ', response);
     convertedResponse = response;
   } else {
     console.log("Unknown type of response: ", response);
