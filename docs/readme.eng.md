@@ -108,17 +108,56 @@ The `config.json` file (created from `config.example.json` on the first launch) 
 | `clientEncryptionPass` | Passphrase used to AES-encrypt client private keys and preshared keys in `.data/peers.json` |
 | `runtimeRotationMinutes` | Interval for regenerating the runtime verification script (`public/assets/runtime.js`) |
 
-### CLI / npm usage
+### Installation via NPM
 
-The project exposes a small CLI so you can install it globally or run with `npx`:
+The project can be installed and updated via NPM, which simplifies deployment and updates:
 
 ```bash
-npm install -g @gratio/wg          # or use npx @gratio/wg ...
-@gratio/wg init-config             # copies config.example.json -> config.json if needed
-@gratio/wg serve                   # starts the Express server (same as npm run start)
+# Install globally
+npm install -g @gratio/wg
+
+# Create a project folder and navigate to it
+mkdir /var/@gratio/wg
+cd /var/@gratio/wg
+
+# Initialize the project (copies necessary files)
+@gratio/wg init
+
+# Edit config.json
+# BE SURE TO CHANGE ALL DEFAULT SECRETS!
+nano config.json
+
+# Start the server
+@gratio/wg serve
 ```
 
-The CLI commands run from the current working directory, so make sure you execute them inside the project folder (or a folder that contains your `config.json` and `.data` directory). This makes it easier to distribute the tool through a private registry and keep the runtime up to date with `npm update -g @gratio/wg`.
+The `@gratio/wg init` command copies to the current directory:
+- `public/` — static web interface files
+- `config.example.json` — configuration example
+- `demon.json` — PM2 configuration file
+
+After initialization, all commands are executed from this directory. The server will automatically create a `.data` folder to store client information.
+
+#### Available CLI Commands
+
+```bash
+@gratio/wg init              # Initialize project (copies files to current directory)
+@gratio/wg serve             # Start the server
+@gratio/wg init-config       # Create config.json from config.example.json (if it doesn't exist)
+@gratio/wg help              # Show help message
+```
+
+#### Running with PM2 (after NPM installation)
+
+```bash
+npm install pm2 -g
+cd /var/@gratio/wg
+pm2 start demon.json
+pm2 startup
+pm2 save
+```
+
+The `demon.json` file is already configured to work with the globally installed package.
 
 ### Additional Information
 

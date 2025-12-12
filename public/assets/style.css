@@ -26,7 +26,12 @@ button:hover { color: #fff; }
 
 fieldset { border: 1px solid rgba(120, 130, 140, 0.6); border-radius: 5px; }
 
-input[type="text"] { background: transparent; border: 1px solid rgba(120,125,140, 0.5); border-radius: 4px; margin-top: 10px; width: 100%; box-sizing: border-box; padding: 5px; color: #fff; }
+input {
+  background: transparent; border: 1px solid rgba(120,125,140, 0.5); border-radius: 4px; box-sizing: border-box; padding: 5px; color: #fff;
+}
+.menublock input {
+  margin-top: 10px; width: 100%;
+}
 input:focus-visible { outline-width: 0; border: none !important; outline: none; }
 
 .hidden { display: none !important; }

@@ -123,6 +123,7 @@
     clearErrorAndTimeout();
     const statusTab = document.getElementById('status-tab');
     const configTab = document.getElementById('config-tab');
+    document.body.style.cursor = 'wait';
     if (statusTab && configTab) {
       statusTab.style.display = 'block';
       configTab.style.display = 'none';
@@ -131,6 +132,7 @@
       url: `/api/wireguard/reboot?iface=${currentIface()}`,
       type: 'GET',
       callback: response => {
+        document.body.style.cursor = 'auto';
         const res = responseHandler(response);
         if (!res.success) {
           renderError(res.data);
